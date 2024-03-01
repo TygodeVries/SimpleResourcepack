@@ -1,0 +1,20 @@
+# Ip should be the ip of your server and not just 127.0.0.1 or localhost.
+ip: "e.x.a.m.p.l.e"
+port: 25564
+
+# If the player is forced to enable the resoucepack
+forced: true
+
+# The resoucepacks that should be applied when the player joins.
+# Example:  default: ["skyblock-resoucepack", "overall"]
+default: ["default"]
+
+####################
+#     Language     #
+####################
+
+# Prompt shown to the player when they are asked to accept the resoucepack
+message_prompt: "No prompt provided"
+message_update: "An update for the resoucepacks is avalible, run '/resoucepack' to update!"
+message_startupdate: "Starting compressing the files..."
+message_collecting: "Sending resoucepacks..."
