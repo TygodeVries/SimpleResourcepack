@@ -8,9 +8,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class ResoucepackCommand implements CommandExecutor {
+
+   //#TODO Should prob clean this up at some point
+
     @Override
     public boolean onCommand(@NonNull CommandSender sender, @NonNull  Command command, @NonNull  String label, String[] args) {
 
@@ -37,7 +41,30 @@ public class ResoucepackCommand implements CommandExecutor {
             return true;
         }
 
-        if(args.length > 0 && args[0].equalsIgnoreCase("load") && (sender.hasPermission("simple_resoucepack.") || sender.isOp()))
+        if(args.length > 0 && args[0].equalsIgnoreCase("removeall") && (sender.hasPermission("simple_resoucepack.removeall") || sender.isOp()))
+        {
+            Player player = (Player) sender;
+
+            if(args.length == 1)
+            {
+                SimpleResourcepack.getInstance().removeResoucepacks(player);
+                return true;
+            }
+
+            player = Bukkit.getPlayer(args[1]);
+
+            if(player == null)
+            {
+                sender.sendMessage("Player not found");
+                return true;
+            }
+
+            sender.sendMessage(config.getString("message_removeall", "Forcing player to remove resoucepack..."));
+            SimpleResourcepack.getInstance().sendDefaultPacks(player);
+            return true;
+        }
+
+        if(args.length > 0 && args[0].equalsIgnoreCase("load") && (sender.hasPermission("simple_resoucepack.load") || sender.isOp()))
         {
             sender.sendMessage(config.getString("message_startupdate", "Starting compressing the files..."));
             Compressor.compressAll();

@@ -120,11 +120,18 @@ public final class SimpleResourcepack extends JavaPlugin {
         FileHoster hoster = FileHoster.getInstance();
         String prompt = SimpleResourcepack.getInstance().getConfig().getString("prompt", "No prompt provided");
         boolean forced = SimpleResourcepack.getInstance().getConfig().getBoolean("forced", true);
-        player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + name, null, prompt, forced);
+        player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
+    }
+
+    public void removeResoucepacks(Player player)
+    {
+        player.removeResourcePacks();
     }
 
     public void sendDefaultPacks(Player player)
     {
+        removeResoucepacks(player);
+
         for(String name : SimpleResourcepack.getInstance().getConfig().getStringList("default"))
         {
             applyResoucepack(player, name);
