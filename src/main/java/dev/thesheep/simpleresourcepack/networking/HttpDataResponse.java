@@ -11,11 +11,19 @@ public class HttpDataResponse {
         this.data = data;
     }
 
+    public static byte[] get404()
+    {
+        String httpResponse = "HTTP/1.1 404 Not found.\r\n\r\n";
+        return httpResponse.getBytes();
+    }
+
     public void Send(Socket socket) throws Exception
     {
+        String fileName = "simplerp-" + System.currentTimeMillis();
+
         String httpResponse = "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: application/zip\r\n" +
-                "Content-Disposition: attachment; filename=\"pack.zip\"\r\n" +
+                "Content-Disposition: attachment; filename=\"" + fileName + ".zip\"\r\n" +
                 "Content-Length: " + data.length + "\r\n" +
                 "\r\n";
 

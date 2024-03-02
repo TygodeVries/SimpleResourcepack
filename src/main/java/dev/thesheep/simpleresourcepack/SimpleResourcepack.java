@@ -1,10 +1,12 @@
 package dev.thesheep.simpleresourcepack;
 
-import com.google.common.xml.XmlEscapers;
 import dev.thesheep.simpleresourcepack.api.ResoucepackCommand;
+import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
 import dev.thesheep.simpleresourcepack.api.players.ResoucepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
 import dev.thesheep.simpleresourcepack.networking.FileHoster;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -12,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -42,10 +45,17 @@ public final class SimpleResourcepack extends JavaPlugin {
         return new File(folderPath + "/cache");
     }
 
+    private PlayerPref playerPref;
+    public PlayerPref getPlayerPref()
+    {
+        return playerPref;
+    }
+
     @Override
     public void onEnable() {
         // Plugin startup logic
         instance = this;
+        playerPref = new PlayerPref();
 
         Metrics metrics = new Metrics(this, 21182);
         metrics.addCustomChart(new SingleLineChart("resoucepacks", new Callable<Integer>() {
@@ -95,32 +105,32 @@ public final class SimpleResourcepack extends JavaPlugin {
         }
     }
 
-    public void applyResoucepack(Player player, String name)
+    public void sendResoucepack(Player player, String name)
     {
-        if(name.endsWith(".zip"))
-        {
-            Bukkit.getLogger().severe("When using the applyResoucepack() method, you should add the .zip at the end of the name.");
-            return;
-        }
+            if(name.endsWith(".zip"))
+            {
+                Bukkit.getLogger().severe("When using the applyResoucepack() method, you should add the .zip at the end of the name.");
+                return;
+            }
 
-        // Should prob improve this
-        boolean exists = false;
-        for(File file : getCacheFolder().listFiles())
-        {
-            if(file.getName().contains(name))
-                exists = true;
-        }
+            // Should prob improve this
+            boolean exists = false;
+            for(File file : getCacheFolder().listFiles())
+            {
+                if(file.getName().contains(name))
+                    exists = true;
+            }
 
-        if(!exists)
-        {
-            Bukkit.getLogger().severe("Attempted to update the resoucepack of player " + player.getName() + " but the pack " + name + " could not be found.");
-            return;
-        }
+            if(!exists)
+            {
+                Bukkit.getLogger().severe("Attempted to update the resoucepack of player " + player.getName() + " but the pack " + name + " could not be found.");
+                return;
+            }
 
-        FileHoster hoster = FileHoster.getInstance();
-        String prompt = SimpleResourcepack.getInstance().getConfig().getString("prompt", "No prompt provided");
-        boolean forced = SimpleResourcepack.getInstance().getConfig().getBoolean("forced", true);
-        player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
+            FileHoster hoster = FileHoster.getInstance();
+            String prompt = SimpleResourcepack.getInstance().getConfig().getString("prompt", "No prompt provided");
+            boolean forced = SimpleResourcepack.getInstance().getConfig().getBoolean("forced", true);
+            player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
     }
 
     public void removeResoucepacks(Player player)
@@ -128,13 +138,27 @@ public final class SimpleResourcepack extends JavaPlugin {
         player.removeResourcePacks();
     }
 
+
+    public void sendActivePacks(Player player)
+    {
+        List<String> active = getPlayerPref().getActiveResoucepacks(player);
+        for(String ac : active)
+        {
+            sendResoucepack(player, ac);
+            String msg = SimpleResourcepack.getInstance().getConfig().getString("message_downloading", "");
+            player.sendMessage(msg);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
+        }
+    }
+
+
     public void sendDefaultPacks(Player player)
     {
         removeResoucepacks(player);
 
         for(String name : SimpleResourcepack.getInstance().getConfig().getStringList("default"))
         {
-            applyResoucepack(player, name);
+            sendResoucepack(player, name);
         }
     }
 
