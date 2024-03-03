@@ -24,181 +24,217 @@ public class ResoucepackCommand implements CommandExecutor {
 
         Configuration config = SimpleResourcepack.getInstance().getConfig();
 
-        if(args.length > 0 && args[0].equalsIgnoreCase("forceupdate") && (sender.hasPermission("simple_resoucepack.force") || sender.isOp()))
+        if(args.length == 0)
         {
-            if(args.length == 1)
-            {
-                sender.sendMessage("You need to specify a player name");
-                return true;
-            }
-
-            Player player = Bukkit.getPlayer(args[1]);
-
-            if(player == null)
-            {
-                sender.sendMessage("Player not found");
-                return true;
-            }
-
-            sender.sendMessage(config.getString("message_force", "Forcing player to update resoucepack..."));
-            SimpleResourcepack.getInstance().sendDefaultPacks(player);
+            forceUpdate((Player) sender);
             return true;
         }
 
-        if(args.length > 0 && args[0].equalsIgnoreCase("add") && (sender.hasPermission("simple_resoucepack.addself") || sender.isOp()))
+        // Update your own pack or someone else's
+        if(args[0].equalsIgnoreCase("update"))
         {
-            if(args.length == 1)
-            {
-                sender.sendMessage(SimpleResourcepack.getInstance().getConfig().getString("message_needname", "You need to provide a name of the resoucepack you want to load"));
-                return true;
-            }
-            String packname = args[1];
-
-            boolean exists = false;
-            for (File file : SimpleResourcepack.getInstance().getResourcepackFolder().listFiles())
-            {
-                if(file.getName().equals(packname))
-                {
-                    exists = true;
-                }
-            }
-
-            if(!exists)
-            {
-                sender.sendMessage("We cant find a resoucepack named " + packname);
-                return true;
-            }
-
-            Player player = (Player) sender;
-
-            List<String> active = SimpleResourcepack.getInstance().getPlayerPref().getActiveResoucepacks(player);
-            active.add(packname);
-            SimpleResourcepack.getInstance().getPlayerPref().setPlayerPreferences(player, active);
-
-            SimpleResourcepack.getInstance().sendResoucepack(player, packname);
-            return true;
-        }
-
-        if(args.length > 0 && args[0].equalsIgnoreCase("forceadd") && (sender.hasPermission("simple_resoucepack.addother") || sender.isOp())) {
-            if (args.length == 1) {
-                sender.sendMessage(SimpleResourcepack.getInstance().getConfig().getString("message_needname", "You need to provide a name of the resoucepack you want to load"));
-                return true;
-            }
-            String packname = args[1];
-
-            boolean exists = false;
-            for (File file : SimpleResourcepack.getInstance().getResourcepackFolder().listFiles())
-            {
-                if(file.getName().equals(packname))
-                {
-                    exists = true;
-                }
-            }
-
-            if(!exists)
-            {
-                sender.sendMessage("We cant find a resoucepack named " + packname);
-                return true;
-            }
-
             if(args.length == 2)
             {
-                sender.sendMessage(SimpleResourcepack.getInstance().getConfig().getString("message_needname", "You need to provide a name of the resoucepack you want to load"));
+                Player player = Bukkit.getPlayer(args[1]);
+
+                if(player == null)
+                {
+                    sendPlayerNotFoundError((Player) sender, args[1]);
+                    return true;
+                }
+
+                if(!hasPermission(player, "simpleresoucepack.update.other"))
+                {
+                    return true;
+                }
+
+                forceUpdate(player);
+
                 return true;
             }
 
-            Player player = Bukkit.getPlayer(args[2]);
-            if(player == null)
-            {
-                sender.sendMessage("You need to provide a valid name!");
-                return true;
-            }
+            forceUpdate((Player) sender);
 
-            List<String> active = SimpleResourcepack.getInstance().getPlayerPref().getActiveResoucepacks(player);
-            active.add(packname);
-            SimpleResourcepack.getInstance().getPlayerPref().setPlayerPreferences(player, active);
-
-            SimpleResourcepack.getInstance().sendResoucepack(player, packname);
             return true;
         }
 
-        if(args.length > 0 && args[0].equalsIgnoreCase("removeall") && (sender.hasPermission("simple_resoucepack.removeall") || sender.isOp()))
+        if(args[0].equalsIgnoreCase("enable"))
         {
-            Player player = (Player) sender;
+            if(!hasPermission((Player) sender, "simpleresoucepack.add.self"))
+            {
+                return true;
+            }
 
             if(args.length == 1)
             {
-                sender.sendMessage(config.getString("message_removeall", "Forcing player to remove resoucepack..."));
-                SimpleResourcepack.getInstance().getPlayerPref().setPlayerPreferences(player, new ArrayList<>());
-                SimpleResourcepack.getInstance().removeResoucepacks(player);
-                SimpleResourcepack.getInstance().sendDefaultPacks(player);
+                sender.sendMessage(config.getString("error_nopack", "§cYou need to provide a resoucepack name"));
                 return true;
             }
 
-            player = Bukkit.getPlayer(args[1]);
-
-            if(player == null)
+            if(args.length == 3)
             {
-                sender.sendMessage("Player not found");
+                Player player = Bukkit.getPlayer(args[2]);
+
+                if(player == null)
+                {
+                    sendPlayerNotFoundError((Player) sender, args[2]);
+                    return true;
+                }
+
+                if(!hasPermission(player, "simpleresoucepack.add.other"))
+                {
+                    return true;
+                }
+
+                addResoucepack(player, args[1]);
+
                 return true;
             }
 
-            sender.sendMessage(config.getString("message_removeall", "Forcing player to remove resoucepack..."));
-            SimpleResourcepack.getInstance().getPlayerPref().setPlayerPreferences(player, new ArrayList<>());
-            SimpleResourcepack.getInstance().removeResoucepacks(player);
-            SimpleResourcepack.getInstance().sendDefaultPacks(player);
-            return true;
+            addResoucepack((Player) sender, args[1]);
         }
 
-        if(args.length > 0 && args[0].equalsIgnoreCase("load") && (sender.hasPermission("simple_resoucepack.load") || sender.isOp()))
+        if(args[0].equalsIgnoreCase("disable"))
         {
-            sender.sendMessage(config.getString("message_startupdate", "Starting compressing the files..."));
-            Compressor.compressAll();
-            return true;
-        }
-
-        if(args.length > 0 && args[0].equalsIgnoreCase("list") && (sender.hasPermission("simple_resoucepack.list") || sender.isOp()))
-        {
-
-
-            File[] available = SimpleResourcepack.getInstance().getResourcepackFolder().listFiles();
-
-            List<String> active = new ArrayList<>();
-
-            if(sender instanceof Player) {
-                Player player = (Player) sender;
-                active = SimpleResourcepack.getInstance().getPlayerPref().getActiveResoucepacks(player);
-            }
-
-
-            sender.sendMessage("§7- Here is a list of resoucepacks that are avalible -");
-            for(File file : available)
+            if(!hasPermission((Player) sender, "simpleresoucepack.remove.self"))
             {
-                if(active.contains(file.getName()))
-                {
-                    sender.sendMessage("§a[Active] " + file.getName());
-                }
-                else if(SimpleResourcepack.getInstance().getConfig().getStringList("default").contains(file.getName()))
-                {
-                    sender.sendMessage("§a[Active] " + file.getName() + "§7 (forced)");
-                }
-                else {
-                    sender.sendMessage("§c[Available] " + file.getName());
-                }
+                return true;
             }
 
+            if(args.length == 1)
+            {
+                sender.sendMessage(config.getString("error_nopack", "§cYou need to provide a resoucepack name"));
+                return true;
+            }
+
+            if(args.length == 3)
+            {
+                Player player = Bukkit.getPlayer(args[2]);
+
+                if(player == null)
+                {
+                    sendPlayerNotFoundError((Player) sender, args[2]);
+                    return true;
+                }
+
+                if(!hasPermission(player, "simpleresoucepack.remove.other"))
+                {
+                    return true;
+                }
+
+                removeResoucepack(player, args[1]);
+
+                return true;
+            }
+
+            removeResoucepack((Player) sender, args[1]);
+        }
+
+        if(args[0].equalsIgnoreCase("load"))
+        {
+            if(!hasPermission((Player) sender, "simpleresoucepack.load"))
+            {
+                return true;
+            }
+
+            loadFromFiles();
+        }
+
+        if(args[0].equalsIgnoreCase("list"))
+        {
+            sendList((Player) sender);
             return true;
         }
 
-        if(sender instanceof  Player) {
-            sender.sendMessage(config.getString("message_collecting", "Downloading Resoucepack..."));
-            SimpleResourcepack.getInstance().sendDefaultPacks((Player) sender);
-            SimpleResourcepack.getInstance().sendActivePacks((Player) sender);
+        if(args[0].equalsIgnoreCase("help"))
+        {
+            sender.sendMessage("https://github.com/TygodeVries/SimpleResoucepack/wiki/Commands");
             return true;
         }
-        else {
-            sender.sendMessage("You cant apply a resoucepack since you are not a player.");
-        }
+
+        sender.sendMessage(config.getString("error_invalidcommand", "§cUnknown sub command"));
         return true;
     }
+
+    private void forceUpdate(Player target)
+    {
+        SimpleResourcepack instance = SimpleResourcepack.getInstance();
+
+        instance.sendDefaultPacks(target);
+        instance.sendActivePacks(target);
+    }
+
+    private void loadFromFiles()
+    {
+        SimpleResourcepack instance = SimpleResourcepack.getInstance();
+        Compressor.compressAll();
+        String msg = instance.getConfig().getString("message_update", "");
+        Bukkit.broadcastMessage(msg);
+    }
+
+    private void addResoucepack(Player player, String resoucepack)
+    {
+        SimpleResourcepack instance = SimpleResourcepack.getInstance();
+
+        instance.getPlayerPref().addResoucepackPreference(player, resoucepack);
+        forceUpdate(player);
+    }
+
+    private void removeResoucepack(Player player, String resoucepack)
+    {
+        SimpleResourcepack instance = SimpleResourcepack.getInstance();
+
+        instance.getPlayerPref().removeResoucepackPreference(player, resoucepack);
+        forceUpdate(player);
+    }
+
+    private boolean hasPermission(Player player, String permission)
+    {
+        if(player.hasPermission(permission))
+        {
+            return true;
+        }
+
+        Configuration config = SimpleResourcepack.getInstance().getConfig();
+        String msg = config.getString("error_noperms", "§cYou are missing the permission {permission} todo this.");
+
+        player.sendMessage(msg.replace("{permission}", permission));
+        return false;
+    }
+
+
+    private void sendPlayerNotFoundError(Player player, String playername)
+    {
+        Configuration config = SimpleResourcepack.getInstance().getConfig();
+        String defaultMsg = "§cWe can not find the player named {player}";
+
+        player.sendMessage(
+                config.getString("error.noplayer", defaultMsg).replace("{player}", playername)
+        );
+    }
+
+    private void sendList(Player player)
+    {
+        List<String> active = SimpleResourcepack.getInstance().getPlayerPref().getResoucepackPreferences(player);
+
+        List<String> possible = SimpleResourcepack.getInstance().getResoucepacks();
+
+        List<String> defaults = SimpleResourcepack.getInstance().getConfig().getStringList("default");
+
+        for(String pack : possible)
+        {
+            if(defaults.contains(pack))
+            {
+                player.sendMessage("§7[Default] > " + pack);
+            }
+            else if(active.contains(pack))
+            {
+                player.sendMessage("§a[Enabled] > " + pack);
+            }
+            else {
+                player.sendMessage("§c[Disabled] > " + pack);
+            }
+        }
+    }
+
 }

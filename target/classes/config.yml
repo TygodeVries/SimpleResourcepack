@@ -14,10 +14,13 @@ default: ["default"]
 ####################
 
 # Prompt shown to the player when they are asked to accept the resoucepack
+error_noplayer: "§cWe can not find the player named {player}"
+error_noperms: "§cYou are missing the permission {permission} todo this."
+error_nopack: "§cYou need to provide a resoucepack name"
+error_invalidcommand: "§cUnknown sub command"
 message_prompt: "No prompt provided"
-message_update: "An update for the resoucepacks is avalible, run '/resoucepack' to update!"
-message_startupdate: "Starting compressing the files..."
-message_collecting: "Sending resoucepacks..."
+message_update: "§aAn update is available for the resoucepack. Run /resoucepack to update."
+message_startupdate: "§7Starting to load the files..."
 message_removeall: "Forcing player to remove resoucepack..."
 message_needname: "You need to provide a name of the resoucepack you want to load"
 message_download_failed: "§cWe where unable to download the resoucepack."

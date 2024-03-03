@@ -43,7 +43,7 @@ public class PlayerPref {
         }
     }
 
-    public void setPlayerPreferences(Player player, List<String> packs)
+    public void setResoucepackPreferences(Player player, List<String> packs)
     {
         playerPreferences.set("resoucepacks." + player.getUniqueId(), packs);
 
@@ -55,7 +55,31 @@ public class PlayerPref {
         }
     }
 
-    public List<String> getActiveResoucepacks(Player player)
+    /**
+     * Add a resoucepack that the client will download when the player joins
+     * @param player The player to edit
+     * @param resoucepackName The name of the resoucepack to add
+     */
+    public void addResoucepackPreference(Player player, String resoucepackName)
+    {
+        List<String> preferences = getResoucepackPreferences(player);
+        preferences.add(resoucepackName);
+        setResoucepackPreferences(player, preferences);
+    }
+
+    /**
+     * Removes a resoucepack that the client will download when the player joins
+     * @param player The player to edit
+     * @param resoucepackName The name of the resoucepack to remove
+     */
+    public void removeResoucepackPreference(Player player, String resoucepackName)
+    {
+        List<String> preferences = getResoucepackPreferences(player);
+        preferences.remove(resoucepackName);
+        setResoucepackPreferences(player, preferences);
+    }
+
+    public List<String> getResoucepackPreferences(Player player)
     {
         List<String> rps = playerPreferences.getStringList("resoucepacks." + player.getUniqueId());
         return rps;

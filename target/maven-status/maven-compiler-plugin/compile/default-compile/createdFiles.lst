@@ -11,3 +11,4 @@ dev\thesheep\simpleresourcepack\api\ResoucepackCommand.class
 dev\thesheep\simpleresourcepack\SimpleResourcepack$1.class
 dev\thesheep\simpleresourcepack\networking\FileHoster$1.class
 dev\thesheep\simpleresourcepack\file\CompressorTask.class
+dev\thesheep\simpleresourcepack\api\ResoucepackCommandSuggestions.class

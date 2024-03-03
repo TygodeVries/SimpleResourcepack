@@ -1,6 +1,7 @@
 package dev.thesheep.simpleresourcepack;
 
 import dev.thesheep.simpleresourcepack.api.ResoucepackCommand;
+import dev.thesheep.simpleresourcepack.api.ResoucepackCommandSuggestions;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
 import dev.thesheep.simpleresourcepack.api.players.ResoucepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
@@ -14,6 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -67,7 +69,7 @@ public final class SimpleResourcepack extends JavaPlugin {
 
         this.getServer().getPluginManager().registerEvents(new ResoucepackEvents(), this);
         this.getCommand("resoucepack").setExecutor(new ResoucepackCommand());
-
+        this.getCommand("resoucepack").setTabCompleter(new ResoucepackCommandSuggestions());
         // Generate basic files for first-time use
         generateFiles();
 
@@ -103,6 +105,17 @@ public final class SimpleResourcepack extends JavaPlugin {
             Bukkit.getLogger().severe("Failed to generate basic files!\n" + e);
             return;
         }
+    }
+
+    public List<String> getResoucepacks()
+    {
+        List<String> a = new ArrayList<>();
+        for(File file : getResourcepackFolder().listFiles())
+        {
+            a.add(file.getName());
+        }
+
+        return a;
     }
 
     public void sendResoucepack(Player player, String name)
@@ -141,7 +154,7 @@ public final class SimpleResourcepack extends JavaPlugin {
 
     public void sendActivePacks(Player player)
     {
-        List<String> active = getPlayerPref().getActiveResoucepacks(player);
+        List<String> active = getPlayerPref().getResoucepackPreferences(player);
         for(String ac : active)
         {
             sendResoucepack(player, ac);
