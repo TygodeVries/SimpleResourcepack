@@ -1,9 +1,9 @@
 package dev.thesheep.simpleresourcepack;
 
-import dev.thesheep.simpleresourcepack.api.ResoucepackCommand;
-import dev.thesheep.simpleresourcepack.api.ResoucepackCommandSuggestions;
+import dev.thesheep.simpleresourcepack.api.ResourcepackCommand;
+import dev.thesheep.simpleresourcepack.api.ResourcepackCommandSuggestions;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
-import dev.thesheep.simpleresourcepack.api.players.ResoucepackEvents;
+import dev.thesheep.simpleresourcepack.api.players.ResourcepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
 import dev.thesheep.simpleresourcepack.networking.FileHoster;
 import net.md_5.bungee.api.ChatMessageType;
@@ -30,7 +30,7 @@ public final class SimpleResourcepack extends JavaPlugin {
     }
 
     /**
-     * Get the resoucepack folder,
+     * Get the resourcepack folder,
      * The resoucepack folder is where all the resourcepacks are stored and is almost always located at:
      * /plugins/SimpleResoucepack/resoucepacks/
      * @return The file poiting to the folder of the resoucepacks
@@ -67,9 +67,9 @@ public final class SimpleResourcepack extends JavaPlugin {
             }
         }));
 
-        this.getServer().getPluginManager().registerEvents(new ResoucepackEvents(), this);
-        this.getCommand("resoucepack").setExecutor(new ResoucepackCommand());
-        this.getCommand("resoucepack").setTabCompleter(new ResoucepackCommandSuggestions());
+        this.getServer().getPluginManager().registerEvents(new ResourcepackEvents(), this);
+        this.getCommand("resourcepack").setExecutor(new ResourcepackCommand());
+        this.getCommand("resourcepack").setTabCompleter(new ResourcepackCommandSuggestions());
         // Generate basic files for first-time use
         generateFiles();
 
@@ -79,7 +79,7 @@ public final class SimpleResourcepack extends JavaPlugin {
 
         new FileHoster(ip, port);
 
-        // Compress all current resoucepacks
+        // Compress all current resourcepack
         Compressor.compressAll();
     }
 
@@ -107,7 +107,7 @@ public final class SimpleResourcepack extends JavaPlugin {
         }
     }
 
-    public List<String> getResoucepacks()
+    public List<String> getResourcepacks()
     {
         List<String> a = new ArrayList<>();
         for(File file : getResourcepackFolder().listFiles())
@@ -118,7 +118,7 @@ public final class SimpleResourcepack extends JavaPlugin {
         return a;
     }
 
-    public void sendResoucepack(Player player, String name)
+    public void sendResourcepack(Player player, String name)
     {
             if(name.endsWith(".zip"))
             {
@@ -146,7 +146,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
     }
 
-    public void removeResoucepacks(Player player)
+    public void removeResourcepacks(Player player)
     {
         player.removeResourcePacks();
     }
@@ -154,10 +154,10 @@ public final class SimpleResourcepack extends JavaPlugin {
 
     public void sendActivePacks(Player player)
     {
-        List<String> active = getPlayerPref().getResoucepackPreferences(player);
+        List<String> active = getPlayerPref().getResourcepackPreferences(player);
         for(String ac : active)
         {
-            sendResoucepack(player, ac);
+            sendResourcepack(player, ac);
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_downloading", "");
             player.sendMessage(msg);
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
@@ -167,11 +167,11 @@ public final class SimpleResourcepack extends JavaPlugin {
 
     public void sendDefaultPacks(Player player)
     {
-        removeResoucepacks(player);
+        removeResourcepacks(player);
 
         for(String name : SimpleResourcepack.getInstance().getConfig().getStringList("default"))
         {
-            sendResoucepack(player, name);
+            sendResourcepack(player, name);
         }
     }
 

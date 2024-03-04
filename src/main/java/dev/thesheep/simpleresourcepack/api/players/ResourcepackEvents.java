@@ -9,7 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
-public class ResoucepackEvents implements Listener {
+public class ResourcepackEvents implements Listener {
     @EventHandler
     public void on(PlayerJoinEvent event)
     {

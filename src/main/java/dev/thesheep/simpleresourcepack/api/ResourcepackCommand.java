@@ -10,12 +10,9 @@ import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import javax.script.ScriptEngine;
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ResoucepackCommand implements CommandExecutor {
+public class ResourcepackCommand implements CommandExecutor {
 
    //#TODO Should prob clean this up at some point
 
@@ -43,7 +40,7 @@ public class ResoucepackCommand implements CommandExecutor {
                     return true;
                 }
 
-                if(!hasPermission(player, "simpleresoucepack.update.other"))
+                if(!hasPermission(player, "simpleresourcepack.update.other"))
                 {
                     return true;
                 }
@@ -60,14 +57,14 @@ public class ResoucepackCommand implements CommandExecutor {
 
         if(args[0].equalsIgnoreCase("enable"))
         {
-            if(!hasPermission((Player) sender, "simpleresoucepack.add.self"))
+            if(!hasPermission((Player) sender, "simpleresourcepack.add.self"))
             {
                 return true;
             }
 
             if(args.length == 1)
             {
-                sender.sendMessage(config.getString("error_nopack", "§cYou need to provide a resoucepack name"));
+                sender.sendMessage(config.getString("error_nopack", "§cYou need to provide a resourcepack name"));
                 return true;
             }
 
@@ -81,7 +78,7 @@ public class ResoucepackCommand implements CommandExecutor {
                     return true;
                 }
 
-                if(!hasPermission(player, "simpleresoucepack.add.other"))
+                if(!hasPermission(player, "simpleresourcepack.add.other"))
                 {
                     return true;
                 }
@@ -92,18 +89,19 @@ public class ResoucepackCommand implements CommandExecutor {
             }
 
             addResoucepack((Player) sender, args[1]);
+            return true;
         }
 
         if(args[0].equalsIgnoreCase("disable"))
         {
-            if(!hasPermission((Player) sender, "simpleresoucepack.remove.self"))
+            if(!hasPermission((Player) sender, "simpleresourcepack.remove.self"))
             {
                 return true;
             }
 
             if(args.length == 1)
             {
-                sender.sendMessage(config.getString("error_nopack", "§cYou need to provide a resoucepack name"));
+                sender.sendMessage(config.getString("error_nopack", "§cYou need to provide a resourcepack name"));
                 return true;
             }
 
@@ -117,7 +115,7 @@ public class ResoucepackCommand implements CommandExecutor {
                     return true;
                 }
 
-                if(!hasPermission(player, "simpleresoucepack.remove.other"))
+                if(!hasPermission(player, "simpleresourcepack.remove.other"))
                 {
                     return true;
                 }
@@ -128,16 +126,18 @@ public class ResoucepackCommand implements CommandExecutor {
             }
 
             removeResoucepack((Player) sender, args[1]);
+            return true;
         }
 
         if(args[0].equalsIgnoreCase("load"))
         {
-            if(!hasPermission((Player) sender, "simpleresoucepack.load"))
+            if(!hasPermission((Player) sender, "simpleresourcepack.load"))
             {
                 return true;
             }
 
             loadFromFiles();
+            return true;
         }
 
         if(args[0].equalsIgnoreCase("list"))
@@ -176,7 +176,7 @@ public class ResoucepackCommand implements CommandExecutor {
     {
         SimpleResourcepack instance = SimpleResourcepack.getInstance();
 
-        instance.getPlayerPref().addResoucepackPreference(player, resoucepack);
+        instance.getPlayerPref().addResourcepackPreference(player, resoucepack);
         forceUpdate(player);
     }
 
@@ -184,7 +184,7 @@ public class ResoucepackCommand implements CommandExecutor {
     {
         SimpleResourcepack instance = SimpleResourcepack.getInstance();
 
-        instance.getPlayerPref().removeResoucepackPreference(player, resoucepack);
+        instance.getPlayerPref().removeResourcepackPreference(player, resoucepack);
         forceUpdate(player);
     }
 
@@ -215,9 +215,9 @@ public class ResoucepackCommand implements CommandExecutor {
 
     private void sendList(Player player)
     {
-        List<String> active = SimpleResourcepack.getInstance().getPlayerPref().getResoucepackPreferences(player);
+        List<String> active = SimpleResourcepack.getInstance().getPlayerPref().getResourcepackPreferences(player);
 
-        List<String> possible = SimpleResourcepack.getInstance().getResoucepacks();
+        List<String> possible = SimpleResourcepack.getInstance().getResourcepacks();
 
         List<String> defaults = SimpleResourcepack.getInstance().getConfig().getStringList("default");
 

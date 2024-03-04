@@ -4,7 +4,6 @@ import dev.thesheep.simpleresourcepack.SimpleResourcepack;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
@@ -12,7 +11,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResoucepackCommandSuggestions implements TabCompleter {
+public class ResourcepackCommandSuggestions implements TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> r = new ArrayList<>();
@@ -20,11 +19,11 @@ public class ResoucepackCommandSuggestions implements TabCompleter {
         if(args.length == 1)
         {
            r.add("help");
-           if(sender.hasPermission("simpleresoucepack.enable.self")) r.add("enable");
-           if(sender.hasPermission("simpleresoucepack.disable.self")) r.add("disable");
-           if(sender.hasPermission("simpleresoucepack.disable.load")) r.add("load");
+           if(sender.hasPermission("simpleresourcepack.enable.self")) r.add("enable");
+           if(sender.hasPermission("simpleresourcepack.disable.self")) r.add("disable");
+           if(sender.hasPermission("simpleresourcepack.disable.load")) r.add("load");
            r.add("update");
-           if(sender.hasPermission("simpleresoucepack.disable.list")) r.add("list");
+           if(sender.hasPermission("simpleresourcepack.disable.list")) r.add("list");
 
            return r;
         }
