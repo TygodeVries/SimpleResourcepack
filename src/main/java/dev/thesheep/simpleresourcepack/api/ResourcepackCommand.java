@@ -32,6 +32,21 @@ public class ResourcepackCommand implements CommandExecutor {
         {
             if(args.length == 2)
             {
+                if(args[1].equalsIgnoreCase("all"))
+                {
+                    if(!hasPermission((Player) sender, "simpleresourcepack.update.all"))
+                    {
+                        return true;
+                    }
+
+                    for(Player player : Bukkit.getOnlinePlayers())
+                    {
+                        forceUpdate(player);
+                    }
+
+                    return true;
+                }
+
                 Player player = Bukkit.getPlayer(args[1]);
 
                 if(player == null)
@@ -40,7 +55,7 @@ public class ResourcepackCommand implements CommandExecutor {
                     return true;
                 }
 
-                if(!hasPermission(player, "simpleresourcepack.update.other"))
+                if(!hasPermission((Player) sender, "simpleresourcepack.update.other"))
                 {
                     return true;
                 }

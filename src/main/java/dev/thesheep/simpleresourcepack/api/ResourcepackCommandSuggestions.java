@@ -28,6 +28,14 @@ public class ResourcepackCommandSuggestions implements TabCompleter {
            return r;
         }
 
+        if(args[0].equalsIgnoreCase("update"))
+        {
+            List<String> a = new ArrayList<>();
+            a.add("all");
+            a.add("<player>");
+            return a;
+        }
+
         if(args[0].equalsIgnoreCase("enable"))
         {
             if(args.length == 2) {
