@@ -14,7 +14,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +28,10 @@ import org.bstats.bukkit.Metrics;
 public final class SimpleResourcepack extends JavaPlugin {
 
     static SimpleResourcepack instance;
+
+    /**
+     * returns the instance of the plugin.
+     */
     public static SimpleResourcepack getInstance()
     {
         return instance;
@@ -41,6 +49,9 @@ public final class SimpleResourcepack extends JavaPlugin {
         return new File(folderPath + "/resourcepacks");
     }
 
+    /**
+     * Returns the folder of caches
+     */
     public File getCacheFolder()
     {
         String folderPath = getDataFolder().getPath();
@@ -48,6 +59,11 @@ public final class SimpleResourcepack extends JavaPlugin {
     }
 
     private PlayerPref playerPref;
+
+    /**
+     * Returns the PlayerPrefs object.
+     * @return
+     */
     public PlayerPref getPlayerPref()
     {
         return playerPref;
@@ -94,8 +110,25 @@ public final class SimpleResourcepack extends JavaPlugin {
             saveDefaultConfig();
 
             // resource-pack folder
-            if (!Files.exists(getResourcepackFolder().toPath()))
+            if (!Files.exists(getResourcepackFolder().toPath())) {
                 Files.createDirectory(getResourcepackFolder().toPath());
+
+                Files.createDirectory(new File(getResourcepackFolder() + "/default").toPath());
+                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets").toPath());
+                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft").toPath());
+                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft/textures").toPath());
+                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft/textures/item").toPath());
+
+                String packContent = "{\n" +
+                        "    \"pack\": {\n" +
+                        "        \"description\": \"Simple Resourcepack, Change this!\",\n" +
+                        "        \"pack_format\": 22\n" +
+                        "    }\n" +
+                        "}";
+                Path mcmetaPath = new File(getResourcepackFolder() + "/default/pack.mcmeta").toPath();
+                Files.createFile(mcmetaPath);
+                Files.write(mcmetaPath, packContent.getBytes(StandardCharsets.UTF_8));
+            }
 
             // Cache folder
             if (!Files.exists(getCacheFolder().toPath()))
@@ -107,6 +140,10 @@ public final class SimpleResourcepack extends JavaPlugin {
         }
     }
 
+    /**
+     * Returns a list of available resourcepacks a player could apply.
+     * @return A list of resourcepack names
+     */
     public List<String> getResourcepacks()
     {
         List<String> a = new ArrayList<>();
@@ -118,11 +155,16 @@ public final class SimpleResourcepack extends JavaPlugin {
         return a;
     }
 
+    /**
+     * Apply a resourcepack to a player
+     * @param player the player
+     * @param name The name of the resourcepack (without a .zip)
+     */
     public void sendResourcepack(Player player, String name)
     {
             if(name.endsWith(".zip"))
             {
-                Bukkit.getLogger().severe("When using the applyResoucepack() method, you should add the .zip at the end of the name.");
+                Bukkit.getLogger().severe("Don't include the .zip in the name of your pack. The current name is " + name);
                 return;
             }
 
@@ -136,7 +178,7 @@ public final class SimpleResourcepack extends JavaPlugin {
 
             if(!exists)
             {
-                Bukkit.getLogger().severe("Attempted to update the resoucepack of player " + player.getName() + " but the pack " + name + " could not be found.");
+                Bukkit.getLogger().severe("Attempted to update the resourcepack of player " + player.getName() + " but the pack " + name + " could not be found.");
                 return;
             }
 
@@ -146,10 +188,15 @@ public final class SimpleResourcepack extends JavaPlugin {
             player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
     }
 
+    /**
+     * Removes all resourcepacks from a player and sets the player back to default
+     * @param player The player
+     */
     public void removeResourcepacks(Player player)
     {
         player.removeResourcePacks();
     }
+
 
 
     public void sendActivePacks(Player player)
@@ -165,6 +212,10 @@ public final class SimpleResourcepack extends JavaPlugin {
     }
 
 
+    /**
+     * Send all the resourcepacks to a player that a player should have on by default
+     * @param player
+     */
     public void sendDefaultPacks(Player player)
     {
         removeResourcepacks(player);

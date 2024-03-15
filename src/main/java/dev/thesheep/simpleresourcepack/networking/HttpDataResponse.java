@@ -11,12 +11,21 @@ public class HttpDataResponse {
         this.data = data;
     }
 
+    /**
+     * Returns a simple 404 responds
+     * @return
+     */
     public static byte[] get404()
     {
         String httpResponse = "HTTP/1.1 404 Not found.\r\n\r\n";
         return httpResponse.getBytes();
     }
 
+    /**
+     * Respond to a socket
+     * @param socket
+     * @throws Exception
+     */
     public void Send(Socket socket) throws Exception
     {
         String fileName = "simplerp-" + System.currentTimeMillis();

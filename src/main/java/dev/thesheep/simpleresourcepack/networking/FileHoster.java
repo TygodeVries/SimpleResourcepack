@@ -44,6 +44,11 @@ public class FileHoster {
     }
 
     ServerSocket serverSocket;
+
+    /**
+     *  Start file hoster
+     * @throws Exception
+     */
     private void Start() throws Exception
     {
         serverSocket = new ServerSocket(port);
@@ -147,6 +152,11 @@ public class FileHoster {
     }
 
     int port;
+
+    /**
+     * The port that is used to host the packs
+     * @return
+     */
     public int getPort() { return port; }
     public void setPort(int port)
     {
@@ -154,6 +164,11 @@ public class FileHoster {
     }
 
     String ip;
+
+    /**
+     * The ip the server is hosted on
+     * @return
+     */
     public String getIp() {return ip; }
     public void setIp(String ip) { this.ip = ip; }
 }

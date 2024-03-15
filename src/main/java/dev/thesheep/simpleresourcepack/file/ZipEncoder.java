@@ -9,6 +9,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ZipEncoder {
+    /**
+     * Generate a zipfile
+     * @param sourceDirPath The folder to compress
+     * @param zipFilePath The location of the output file
+     */
     public static void createZipFile(String sourceDirPath, String zipFilePath) {
         FileOutputStream fileStream;
         try {
