@@ -54,26 +54,26 @@ public class PlayerPref {
     }
 
     /**
-     * Add a resoucepack that the client will download when the player joins
+     * Add a resourcepack that the client will download when the player joins
      * @param player The player to edit
-     * @param resoucepackName The name of the resoucepack to add
+     * @param resourcepackName The name of the resourcepack to add
      */
-    public void addResourcepackPreference(Player player, String resoucepackName)
+    public void addResourcepackPreference(Player player, String resourcepackName)
     {
         List<String> preferences = getResourcepackPreferences(player);
-        preferences.add(resoucepackName);
+        preferences.add(resourcepackName);
         setResourcepackPreferences(player, preferences);
     }
 
     /**
-     * Removes a resoucepack that the client will download when the player joins
+     * Removes a resourcepack that the client will download when the player joins
      * @param player The player to edit
-     * @param resoucepackName The name of the resoucepack to remove
+     * @param packName The name of the resourcepack to remove
      */
-    public void removeResourcepackPreference(Player player, String resoucepackName)
+    public void removeResourcepackPreference(Player player, String packName)
     {
         List<String> preferences = getResourcepackPreferences(player);
-        preferences.remove(resoucepackName);
+        preferences.remove(packName);
         setResourcepackPreferences(player, preferences);
     }
 

@@ -26,3 +26,4 @@ message_needname: "You need to provide a name of the resourcepack you want to lo
 message_download_failed: "§cWe where unable to download the resourcepack."
 message_download_complete: "§aYou are now using the resourcepack"
 message_downloading: "§7We are downloading your resourcepacks..."
+message_listupdated: "§aYou have updated your resourcepack preferences. Be sure to run §l/rp update §ato active them."

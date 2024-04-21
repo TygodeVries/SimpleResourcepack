@@ -7,9 +7,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 
 public class ResourcepackCommand implements CommandExecutor {
@@ -83,6 +86,25 @@ public class ResourcepackCommand implements CommandExecutor {
                 return true;
             }
 
+            File f = new File(SimpleResourcepack.getInstance().getSettingsFolder().toPath() + "/" + args[1] + ".yml");
+
+            if(!f.exists())
+            {
+                sender.sendMessage("§cUnknown resourcepack.");
+                return true;
+            }
+
+            YamlConfiguration configuration = YamlConfiguration.loadConfiguration(f);
+
+            String permission = configuration.getString("permission", "none");
+
+            if(!sender.hasPermission(permission) && !permission.equals("none"))
+            {
+                sender.sendMessage("§cYou are missing the permission " + permission);
+                return true;
+            }
+
+
             if(args.length == 3)
             {
                 Player player = Bukkit.getPlayer(args[2]);
@@ -93,17 +115,17 @@ public class ResourcepackCommand implements CommandExecutor {
                     return true;
                 }
 
-                if(!hasPermission(player, "simpleresourcepack.add.other"))
+                if(!hasPermission((Player) sender, "simpleresourcepack.add.other"))
                 {
                     return true;
                 }
 
-                addResoucepack(player, args[1]);
+                addResourcepack(player, args[1]);
 
                 return true;
             }
 
-            addResoucepack((Player) sender, args[1]);
+            addResourcepack((Player) sender, args[1]);
             return true;
         }
 
@@ -130,17 +152,17 @@ public class ResourcepackCommand implements CommandExecutor {
                     return true;
                 }
 
-                if(!hasPermission(player, "simpleresourcepack.remove.other"))
+                if(!hasPermission((Player) sender, "simpleresourcepack.remove.other"))
                 {
                     return true;
                 }
 
-                removeResoucepack(player, args[1]);
+                removeResourcepack(player, args[1]);
 
                 return true;
             }
 
-            removeResoucepack((Player) sender, args[1]);
+            removeResourcepack((Player) sender, args[1]);
             return true;
         }
 
@@ -157,13 +179,20 @@ public class ResourcepackCommand implements CommandExecutor {
 
         if(args[0].equalsIgnoreCase("list"))
         {
-            sendList((Player) sender);
+            Player player = (Player) sender;
+            if(player.hasPermission("simpleresourcepack.list")) {
+
+                SimpleResourcepack.getInstance().getGuiGenerator().openForPlayer(player);
+            }
+            else{
+                player.sendMessage("§cYou don't have permission todo that.");
+            }
             return true;
         }
 
         if(args[0].equalsIgnoreCase("help"))
         {
-            sender.sendMessage("https://github.com/TygodeVries/SimpleResoucepack/wiki/Commands");
+            sender.sendMessage("https://github.com/TygodeVries/SimpleResourcepack/wiki/Commands");
             return true;
         }
 
@@ -187,19 +216,19 @@ public class ResourcepackCommand implements CommandExecutor {
         Bukkit.broadcastMessage(msg);
     }
 
-    private void addResoucepack(Player player, String resoucepack)
+    private void addResourcepack(Player player, String pack)
     {
         SimpleResourcepack instance = SimpleResourcepack.getInstance();
 
-        instance.getPlayerPref().addResourcepackPreference(player, resoucepack);
+        instance.getPlayerPref().addResourcepackPreference(player, pack);
         forceUpdate(player);
     }
 
-    private void removeResoucepack(Player player, String resoucepack)
+    private void removeResourcepack(Player player, String pack)
     {
         SimpleResourcepack instance = SimpleResourcepack.getInstance();
 
-        instance.getPlayerPref().removeResourcepackPreference(player, resoucepack);
+        instance.getPlayerPref().removeResourcepackPreference(player, pack);
         forceUpdate(player);
     }
 

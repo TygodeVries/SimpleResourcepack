@@ -2,6 +2,8 @@ package dev.thesheep.simpleresourcepack;
 
 import dev.thesheep.simpleresourcepack.api.ResourcepackCommand;
 import dev.thesheep.simpleresourcepack.api.ResourcepackCommandSuggestions;
+import dev.thesheep.simpleresourcepack.api.ResourcepackGUIEvents;
+import dev.thesheep.simpleresourcepack.api.ResourcepackGUIGenerator;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
 import dev.thesheep.simpleresourcepack.api.players.ResourcepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
@@ -10,11 +12,14 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,14 +44,20 @@ public final class SimpleResourcepack extends JavaPlugin {
 
     /**
      * Get the resourcepack folder,
-     * The resoucepack folder is where all the resourcepacks are stored and is almost always located at:
-     * /plugins/SimpleResoucepack/resoucepacks/
-     * @return The file poiting to the folder of the resoucepacks
+     * The resourcepack folder is where all the resourcepacks are stored and is almost always located at:
+     * /plugins/SimpleResourcepack/resourcepacks/
+     * @return The file poiting to the folder of the resourcepacks
      */
     public File getResourcepackFolder()
     {
         String folderPath = getDataFolder().getPath();
         return new File(folderPath + "/resourcepacks");
+    }
+
+    public File getSettingsFolder()
+    {
+        String folderPath = getDataFolder().getPath();
+        return new File(folderPath + "/settings");
     }
 
     /**
@@ -69,19 +80,29 @@ public final class SimpleResourcepack extends JavaPlugin {
         return playerPref;
     }
 
+    private ResourcepackGUIGenerator guiGenerator;
+    public ResourcepackGUIGenerator getGuiGenerator()
+    {
+        return guiGenerator;
+    }
+
     @Override
     public void onEnable() {
         // Plugin startup logic
         instance = this;
         playerPref = new PlayerPref();
+        guiGenerator = new ResourcepackGUIGenerator();
 
         Metrics metrics = new Metrics(this, 21182);
-        metrics.addCustomChart(new SingleLineChart("resoucepacks", new Callable<Integer>() {
+        metrics.addCustomChart(new SingleLineChart("resourcepacks", new Callable<Integer>() {
             @Override
             public Integer call() throws Exception {
                 return getResourcepackFolder().listFiles().length;
             }
         }));
+
+
+        this.getServer().getPluginManager().registerEvents(new ResourcepackGUIEvents(), this);
 
         this.getServer().getPluginManager().registerEvents(new ResourcepackEvents(), this);
         this.getCommand("resourcepack").setExecutor(new ResourcepackCommand());
@@ -100,7 +121,7 @@ public final class SimpleResourcepack extends JavaPlugin {
     }
 
     /**
-     * Generates files like the resoucepack folder and the config.yml
+     * Generates files like the resourcepack folder and the config.yml
      * Calling it could repair a broken installation.
      * Files that already exist won't be replaced.
      */
@@ -108,6 +129,22 @@ public final class SimpleResourcepack extends JavaPlugin {
     {
         try {
             saveDefaultConfig();
+
+            if(!Files.exists(getSettingsFolder().toPath()))
+            {
+                Files.createDirectory(getSettingsFolder().toPath());
+                Files.createFile(new File(getSettingsFolder().toPath() + "/default.yml").toPath());
+
+                YamlConfiguration configuration = new YamlConfiguration();
+                configuration.set("name", "Default");
+                configuration.set("material", "SPONGE");
+                List<String> lore = new ArrayList<>();
+                lore.add("§fA default pack.");
+                lore.add("§6Edit this in settings/default.yml");
+                configuration.set("lore", lore);
+                configuration.set("permission", "none");
+                configuration.save(new File(getSettingsFolder().toPath() + "/default.yml"));
+            }
 
             // resource-pack folder
             if (!Files.exists(getResourcepackFolder().toPath())) {
@@ -227,8 +264,25 @@ public final class SimpleResourcepack extends JavaPlugin {
     }
 
 
+    public boolean disabled = false;
+
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+
+        // Attempt to shut down filehost
+        disabled = true;
+        String ip = getConfig().getString("ip");
+        int port = getConfig().getInt("port");
+
+        Bukkit.getScheduler().cancelTasks(this);
+
+        try {
+            Socket socket = new Socket(ip, port);
+            socket.close();
+        } catch (Exception e)
+        {
+            Bukkit.getLogger().info("Could not shutdown filehost, waiting till timeout..." + e);
+        }
     }
 }

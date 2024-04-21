@@ -30,7 +30,7 @@ public class Compressor {
                 if(compressorTask.hasCompleted)
                 {
                     String updateMessage = SimpleResourcepack.getInstance().getConfig().getString("message_update", "");
-                    if(updateMessage != "" && !silent)
+                    if(!updateMessage.equalsIgnoreCase("") && !silent)
                         Bukkit.broadcastMessage(updateMessage);
 
                     this.cancel();
@@ -46,9 +46,9 @@ public class Compressor {
      */
     public static void compressAll()
     {
-        File[] resoucepackFolders = SimpleResourcepack.getInstance().getResourcepackFolder().listFiles();
-        assert resoucepackFolders != null;
-        for(File file : resoucepackFolders)
+        File[] resourcepackFolders = SimpleResourcepack.getInstance().getResourcepackFolder().listFiles();
+        assert resourcepackFolders != null;
+        for(File file : resourcepackFolders)
         {
             createCompressionTask(file, true);
         }

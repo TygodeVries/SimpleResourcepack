@@ -39,7 +39,7 @@ public class FileHoster {
             Start();
         } catch (Exception e)
         {
-            Bukkit.getLogger().severe("Failed to start resoucepack server: " + e);
+            Bukkit.getLogger().severe("Failed to start resourcepack server: " + e);
         }
     }
 
@@ -77,6 +77,11 @@ public class FileHoster {
             public void tick() throws Exception
             {
                 Socket socket = serverSocket.accept();
+
+                if(SimpleResourcepack.getInstance().disabled)
+                {
+                    return;
+                }
 
                 ExecutorService executorService = Executors.newSingleThreadExecutor();
 
