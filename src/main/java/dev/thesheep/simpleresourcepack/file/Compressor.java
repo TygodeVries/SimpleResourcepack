@@ -29,10 +29,6 @@ public class Compressor {
             public void run() {
                 if(compressorTask.hasCompleted)
                 {
-                    String updateMessage = SimpleResourcepack.getInstance().getConfig().getString("message_update", "");
-                    if(!updateMessage.equalsIgnoreCase("") && !silent)
-                        Bukkit.broadcastMessage(updateMessage);
-
                     this.cancel();
                 }
             }
@@ -52,9 +48,5 @@ public class Compressor {
         {
             createCompressionTask(file, true);
         }
-
-        String updateMessage = SimpleResourcepack.getInstance().getConfig().getString("message_update", "");
-        if(updateMessage != "")
-            Bukkit.broadcastMessage(updateMessage);
     }
 }

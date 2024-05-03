@@ -173,6 +173,11 @@ public class ResourcepackCommand implements CommandExecutor {
                 return true;
             }
 
+
+            sender.sendMessage("§7Loading config...");
+            SimpleResourcepack.getInstance().reloadConfig();
+
+            sender.sendMessage("§7Loading packs...");
             loadFromFiles();
             return true;
         }

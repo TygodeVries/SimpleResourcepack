@@ -90,6 +90,11 @@ public final class SimpleResourcepack extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         instance = this;
+
+        if(!getDataFolder().exists())
+        {
+            getDataFolder().mkdirs();
+        }
         playerPref = new PlayerPref();
         guiGenerator = new ResourcepackGUIGenerator();
 
