@@ -261,29 +261,4 @@ public class ResourcepackCommand implements CommandExecutor {
                 config.getString("error.noplayer", defaultMsg).replace("{player}", playername)
         );
     }
-
-    private void sendList(Player player)
-    {
-        List<String> active = SimpleResourcepack.getInstance().getPlayerPref().getResourcepackPreferences(player);
-
-        List<String> possible = SimpleResourcepack.getInstance().getResourcepacks();
-
-        List<String> defaults = SimpleResourcepack.getInstance().getConfig().getStringList("default");
-
-        for(String pack : possible)
-        {
-            if(defaults.contains(pack))
-            {
-                player.sendMessage("§7[Default] > " + pack);
-            }
-            else if(active.contains(pack))
-            {
-                player.sendMessage("§a[Enabled] > " + pack);
-            }
-            else {
-                player.sendMessage("§c[Disabled] > " + pack);
-            }
-        }
-    }
-
 }

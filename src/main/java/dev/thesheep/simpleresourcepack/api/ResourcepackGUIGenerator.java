@@ -19,6 +19,9 @@ import java.util.List;
 public class ResourcepackGUIGenerator {
     public void openForPlayer(Player player)
     {
+        // Make sure the player does not have any other guis open.
+        player.closeInventory();
+
         activeForPlayers.add(player);
 
         Inventory inventory = Bukkit.createInventory(player, 9 * 2, "Resourcepacks");

@@ -1,4 +1,5 @@
 # Ip should be the ip of your server and not just 127.0.0.1 or localhost.
+# You have to restart your server after editing the ip or port.
 ip: "e.x.a.m.p.l.e"
 port: 25564
 
