@@ -5,6 +5,7 @@ import dev.thesheep.simpleresourcepack.api.ResourcepackCommandSuggestions;
 import dev.thesheep.simpleresourcepack.api.ResourcepackGUIEvents;
 import dev.thesheep.simpleresourcepack.api.ResourcepackGUIGenerator;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
+
 import dev.thesheep.simpleresourcepack.api.players.ResourcepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
 import dev.thesheep.simpleresourcepack.networking.FileHoster;
@@ -12,20 +13,19 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -102,7 +102,7 @@ public final class SimpleResourcepack extends JavaPlugin {
         metrics.addCustomChart(new SingleLineChart("resourcepacks", new Callable<Integer>() {
             @Override
             public Integer call() throws Exception {
-                return getResourcepackFolder().listFiles().length;
+                return Objects.requireNonNull(getResourcepackFolder().listFiles()).length;
             }
         }));
 
@@ -110,8 +110,8 @@ public final class SimpleResourcepack extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new ResourcepackGUIEvents(), this);
 
         this.getServer().getPluginManager().registerEvents(new ResourcepackEvents(), this);
-        this.getCommand("resourcepack").setExecutor(new ResourcepackCommand());
-        this.getCommand("resourcepack").setTabCompleter(new ResourcepackCommandSuggestions());
+        Objects.requireNonNull(this.getCommand("resourcepack")).setExecutor(new ResourcepackCommand());
+        Objects.requireNonNull(this.getCommand("resourcepack")).setTabCompleter(new ResourcepackCommandSuggestions());
         // Generate basic files for first-time use
         generateFiles();
 
@@ -189,7 +189,7 @@ public final class SimpleResourcepack extends JavaPlugin {
     public List<String> getResourcepacks()
     {
         List<String> a = new ArrayList<>();
-        for(File file : getResourcepackFolder().listFiles())
+        for(File file : Objects.requireNonNull(getResourcepackFolder().listFiles()))
         {
             a.add(file.getName());
         }
@@ -212,7 +212,7 @@ public final class SimpleResourcepack extends JavaPlugin {
 
             // Should prob improve this
             boolean exists = false;
-            for(File file : getCacheFolder().listFiles())
+            for(File file : Objects.requireNonNull(getCacheFolder().listFiles()))
             {
                 if(file.getName().contains(name))
                     exists = true;
@@ -256,7 +256,7 @@ public final class SimpleResourcepack extends JavaPlugin {
 
     /**
      * Send all the resourcepacks to a player that a player should have on by default
-     * @param player
+     * @param player The player to send the default packs to
      */
     public void sendDefaultPacks(Player player)
     {
@@ -275,7 +275,7 @@ public final class SimpleResourcepack extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
 
-        // Attempt to shut down filehost
+        // Attempt to shut down file host
         disabled = true;
         String ip = getConfig().getString("ip");
         int port = getConfig().getInt("port");
@@ -287,7 +287,20 @@ public final class SimpleResourcepack extends JavaPlugin {
             socket.close();
         } catch (Exception e)
         {
-            Bukkit.getLogger().info("Could not shutdown filehost, waiting till timeout..." + e);
+            Bukkit.getLogger().info("Could not shutdown file host, waiting till timeout..." + e);
         }
     }
+
+    public Configuration getResourcepackConfig(String packName)
+    {
+        File f = new File(SimpleResourcepack.getInstance().getSettingsFolder().toPath() + "/" + packName + ".yml");
+
+        if(!f.exists())
+        {
+            return null;
+        }
+
+        return YamlConfiguration.loadConfiguration(f);
+    }
+
 }

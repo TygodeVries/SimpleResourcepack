@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ResourcepackCommandSuggestions implements TabCompleter {
     @Override
@@ -18,7 +19,6 @@ public class ResourcepackCommandSuggestions implements TabCompleter {
 
         if(args.length == 1)
         {
-           r.add("help");
            if(sender.hasPermission("simpleresourcepack.enable.self")) r.add("enable");
            if(sender.hasPermission("simpleresourcepack.disable.self")) r.add("disable");
            if(sender.hasPermission("simpleresourcepack.disable.load")) r.add("load");
@@ -39,7 +39,7 @@ public class ResourcepackCommandSuggestions implements TabCompleter {
         if(args[0].equalsIgnoreCase("enable"))
         {
             if(args.length == 2) {
-                for (File file : SimpleResourcepack.getInstance().getResourcepackFolder().listFiles()) {
+                for (File file : Objects.requireNonNull(SimpleResourcepack.getInstance().getResourcepackFolder().listFiles())) {
                     r.add(file.getName());
                 }
             }
@@ -51,7 +51,7 @@ public class ResourcepackCommandSuggestions implements TabCompleter {
         if(args[0].equalsIgnoreCase("disable"))
         {
             if(args.length == 2) {
-                for (File file : SimpleResourcepack.getInstance().getResourcepackFolder().listFiles()) {
+                for (File file : Objects.requireNonNull(SimpleResourcepack.getInstance().getResourcepackFolder().listFiles())) {
                     r.add(file.getName());
                 }
             }
