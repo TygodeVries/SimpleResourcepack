@@ -5,12 +5,12 @@ import dev.thesheep.simpleresourcepack.api.ResourcepackCommandSuggestions;
 import dev.thesheep.simpleresourcepack.api.ResourcepackGUIEvents;
 import dev.thesheep.simpleresourcepack.api.ResourcepackGUIGenerator;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
-
 import dev.thesheep.simpleresourcepack.api.players.ResourcepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
 import dev.thesheep.simpleresourcepack.networking.FileHoster;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
@@ -26,10 +26,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import org.bstats.bukkit.Metrics;
 public final class SimpleResourcepack extends JavaPlugin {
 
     static SimpleResourcepack instance;
