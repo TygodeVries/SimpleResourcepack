@@ -14,8 +14,8 @@ public class ResourcepackEvents implements Listener {
     public void on(PlayerJoinEvent event)
     {
         Player player = event.getPlayer();
-        SimpleResourcepack.getInstance().sendDefaultPacks((Player) player);
-        SimpleResourcepack.getInstance().sendActivePacks((Player) player);
+        SimpleResourcepack.getInstance().sendDefaultPacks(player);
+        SimpleResourcepack.getInstance().sendActivePacks(player);
     }
 
     @EventHandler
