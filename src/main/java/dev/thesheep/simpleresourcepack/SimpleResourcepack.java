@@ -247,7 +247,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             sendResourcepack(player, ac);
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_downloading", "");
             player.sendMessage(msg);
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(msg));
         }
     }
 

@@ -24,12 +24,12 @@ public class ResourcepackEvents implements Listener {
         if(event.getStatus() == PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED)
         {
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_download_complete", "");
-            event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
+            event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(msg));
         }
         else if(event.getStatus() == PlayerResourcePackStatusEvent.Status.FAILED_DOWNLOAD)
         {
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_download_failed", "");
-            event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
+            event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(msg));
         }
     }
 
