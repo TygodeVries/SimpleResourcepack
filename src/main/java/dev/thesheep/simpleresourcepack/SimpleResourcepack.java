@@ -97,12 +97,7 @@ public final class SimpleResourcepack extends JavaPlugin {
         guiGenerator = new ResourcepackGUIGenerator();
 
         Metrics metrics = new Metrics(this, 21182);
-        metrics.addCustomChart(new SingleLineChart("resourcepacks", new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                return Objects.requireNonNull(getResourcepackFolder().listFiles()).length;
-            }
-        }));
+        metrics.addCustomChart(new SingleLineChart("resourcepacks", () -> Objects.requireNonNull(getResourcepackFolder().listFiles()).length));
 
 
         this.getServer().getPluginManager().registerEvents(new ResourcepackGUIEvents(), this);
@@ -153,11 +148,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             if (!Files.exists(getResourcepackFolder().toPath())) {
                 Files.createDirectory(getResourcepackFolder().toPath());
 
-                Files.createDirectory(new File(getResourcepackFolder() + "/default").toPath());
-                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets").toPath());
-                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft").toPath());
-                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft/textures").toPath());
-                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft/textures/item").toPath());
+                Files.createDirectories(new File(getResourcepackFolder() + "/default/assets/minecraft/textures/item").toPath());
 
                 String packContent = "{\n" +
                         "    \"pack\": {\n" +
@@ -176,7 +167,6 @@ public final class SimpleResourcepack extends JavaPlugin {
         } catch (Exception e)
         {
             Bukkit.getLogger().severe("Failed to generate basic files!\n" + e);
-            return;
         }
     }
 
