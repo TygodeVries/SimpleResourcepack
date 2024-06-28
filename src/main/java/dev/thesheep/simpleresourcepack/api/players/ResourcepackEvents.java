@@ -1,8 +1,7 @@
 package dev.thesheep.simpleresourcepack.api.players;
 
 import dev.thesheep.simpleresourcepack.SimpleResourcepack;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import dev.thesheep.simpleresourcepack.legacy.ActionBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,12 +23,12 @@ public class ResourcepackEvents implements Listener {
         if(event.getStatus() == PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED)
         {
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_download_complete", "");
-            event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(msg));
+            ActionBar.sendActionBar(event.getPlayer(), msg);
         }
         else if(event.getStatus() == PlayerResourcePackStatusEvent.Status.FAILED_DOWNLOAD)
         {
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_download_failed", "");
-            event.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(msg));
+            ActionBar.sendActionBar(event.getPlayer(), msg);
         }
     }
 

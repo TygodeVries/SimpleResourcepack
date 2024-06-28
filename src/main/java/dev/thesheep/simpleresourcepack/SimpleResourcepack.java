@@ -7,9 +7,9 @@ import dev.thesheep.simpleresourcepack.api.ResourcepackGUIGenerator;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
 import dev.thesheep.simpleresourcepack.api.players.ResourcepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
+import dev.thesheep.simpleresourcepack.legacy.ActionBar;
+import dev.thesheep.simpleresourcepack.legacy.ResourcePack;
 import dev.thesheep.simpleresourcepack.networking.FileHoster;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
@@ -238,7 +238,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             sendResourcepack(player, ac);
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_downloading", "");
             player.sendMessage(msg);
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(msg));
+            ActionBar.sendActionBar(player, msg);
         }
     }
 
