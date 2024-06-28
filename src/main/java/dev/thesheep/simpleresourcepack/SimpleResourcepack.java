@@ -71,7 +71,7 @@ public final class SimpleResourcepack extends JavaPlugin {
 
     /**
      * Returns the PlayerPrefs object.
-     * @return
+     * @return The PlayerPrefs object
      */
     public PlayerPref getPlayerPref()
     {
