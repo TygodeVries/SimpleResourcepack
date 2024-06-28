@@ -230,8 +230,6 @@ public final class SimpleResourcepack extends JavaPlugin {
         player.removeResourcePacks();
     }
 
-
-
     public void sendActivePacks(Player player)
     {
         List<String> active = getPlayerPref().getResourcepackPreferences(player);
@@ -243,7 +241,6 @@ public final class SimpleResourcepack extends JavaPlugin {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(msg));
         }
     }
-
 
     /**
      * Send all the resourcepacks to a player that a player should have on by default
@@ -258,9 +255,6 @@ public final class SimpleResourcepack extends JavaPlugin {
             sendResourcepack(player, name);
         }
     }
-
-
-    public boolean disabled = false;
 
     @Override
     public void onDisable() {
