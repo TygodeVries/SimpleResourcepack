@@ -192,30 +192,33 @@ public final class SimpleResourcepack extends JavaPlugin {
      */
     public void sendResourcepack(Player player, String name)
     {
-            if(name.endsWith(".zip"))
-            {
-                Bukkit.getLogger().severe("Don't include the .zip in the name of your pack. The current name is " + name);
-                return;
-            }
+        if(name.endsWith(".zip"))
+        {
+            Bukkit.getLogger().severe("Don't include the .zip in the name of your pack. The current name is " + name);
+            return;
+        }
 
-            // Should prob improve this
-            boolean exists = false;
-            for(File file : Objects.requireNonNull(getCacheFolder().listFiles()))
+        // TODO: Should prob improve this
+        boolean exists = false;
+        for(File file : Objects.requireNonNull(getCacheFolder().listFiles()))
+        {
+	        if(file.getName().contains(name))
             {
-                if(file.getName().contains(name))
-                    exists = true;
-            }
+		        exists = true;
+		        break;
+	        }
+        }
 
-            if(!exists)
-            {
-                Bukkit.getLogger().severe("Attempted to update the resourcepack of player " + player.getName() + " but the pack " + name + " could not be found.");
-                return;
-            }
+        if(!exists)
+        {
+            Bukkit.getLogger().severe("Attempted to update the resourcepack of player " + player.getName() + " but the pack " + name + " could not be found.");
+            return;
+        }
 
-            FileHoster hoster = FileHoster.getInstance();
-            String prompt = SimpleResourcepack.getInstance().getConfig().getString("prompt", "No prompt provided");
-            boolean forced = SimpleResourcepack.getInstance().getConfig().getBoolean("forced", true);
-            player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
+        FileHoster hoster = FileHoster.getInstance();
+        String prompt = SimpleResourcepack.getInstance().getConfig().getString("prompt", "No prompt provided");
+        boolean forced = SimpleResourcepack.getInstance().getConfig().getBoolean("forced", true);
+        player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
     }
 
     /**
