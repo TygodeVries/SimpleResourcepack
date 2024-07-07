@@ -19,14 +19,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
 public final class SimpleResourcepack extends JavaPlugin {
     private static String PROMPT_MSG;
@@ -220,10 +218,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             return;
         }
 
-        FileHoster hoster = FileHoster.getInstance();
-        String prompt = SimpleResourcepack.getInstance().getConfig().getString("prompt", "No prompt provided");
-        boolean forced = SimpleResourcepack.getInstance().getConfig().getBoolean("forced", true);
-        player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
+        ResourcePack.addResourcePack(player, name, PROMPT_MSG, IS_FORCED);
     }
 
     /**
@@ -232,7 +227,7 @@ public final class SimpleResourcepack extends JavaPlugin {
      */
     public void removeResourcepacks(Player player)
     {
-        player.removeResourcePacks();
+        ResourcePack.removeResourcePacks(player);
     }
 
     public void sendActivePacks(Player player)
