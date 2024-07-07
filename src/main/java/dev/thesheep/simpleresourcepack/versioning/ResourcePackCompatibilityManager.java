@@ -1,4 +1,4 @@
-package dev.thesheep.simpleresourcepack.legacy;
+package dev.thesheep.simpleresourcepack.versioning;
 
 import dev.thesheep.simpleresourcepack.SimpleResourcepack;
 import dev.thesheep.simpleresourcepack.networking.FileHoster;
@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class ResourcePack {
+public class ResourcePackCompatibilityManager {
 	private static final boolean USE_LEGACY_METHOD;
 	private static Method addResourcePackMethod;
 	private static Method removeResourcePacksMethod;

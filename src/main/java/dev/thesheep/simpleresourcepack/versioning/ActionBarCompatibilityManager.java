@@ -1,4 +1,4 @@
-package dev.thesheep.simpleresourcepack.legacy;
+package dev.thesheep.simpleresourcepack.versioning;
 
 import dev.thesheep.simpleresourcepack.SimpleResourcepack;
 import net.md_5.bungee.api.ChatMessageType;
@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 
-public class ActionBar {
+public class ActionBarCompatibilityManager {
 	private static final boolean USE_LEGACY_METHOD;
 	private static Method fromLegacyMethod;
 

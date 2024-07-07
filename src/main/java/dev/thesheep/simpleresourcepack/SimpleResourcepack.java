@@ -7,8 +7,8 @@ import dev.thesheep.simpleresourcepack.api.ResourcepackGUIGenerator;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
 import dev.thesheep.simpleresourcepack.api.players.ResourcepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
-import dev.thesheep.simpleresourcepack.legacy.ActionBar;
-import dev.thesheep.simpleresourcepack.legacy.ResourcePack;
+import dev.thesheep.simpleresourcepack.versioning.ActionBarCompatibilityManager;
+import dev.thesheep.simpleresourcepack.versioning.ResourcePackCompatibilityManager;
 import dev.thesheep.simpleresourcepack.networking.FileHoster;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SingleLineChart;
@@ -218,7 +218,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             return;
         }
 
-        ResourcePack.addResourcePack(player, name, PROMPT_MSG, IS_FORCED);
+        ResourcePackCompatibilityManager.addResourcePack(player, name, PROMPT_MSG, IS_FORCED);
     }
 
     /**
@@ -227,7 +227,7 @@ public final class SimpleResourcepack extends JavaPlugin {
      */
     public void removeResourcepacks(Player player)
     {
-        ResourcePack.removeResourcePacks(player);
+        ResourcePackCompatibilityManager.removeResourcePacks(player);
     }
 
     public void sendActivePacks(Player player)
@@ -238,7 +238,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             sendResourcepack(player, ac);
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_downloading", "");
             player.sendMessage(msg);
-            ActionBar.sendActionBar(player, msg);
+            ActionBarCompatibilityManager.sendActionBar(player, msg);
         }
     }
 
