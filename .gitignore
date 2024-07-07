@@ -29,6 +29,8 @@ log/
 !lib/**
 
 # Compiled Files
+.gradle/
+gradle/*
 *.class
 bin/
 build/
