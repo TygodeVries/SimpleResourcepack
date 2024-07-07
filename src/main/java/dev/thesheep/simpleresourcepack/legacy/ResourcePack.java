@@ -51,6 +51,8 @@ public class ResourcePack {
 				if (forced) forcedPlayers.add(player.getUniqueId());
 			} else {
 				UUID packId = UUID.randomUUID();
+				if (prompt != null && prompt.isEmpty()) prompt = null;
+
 				addResourcePackMethod.invoke(player, packId, url, null, prompt, forced);
 			}
 		} catch (Exception e) {
