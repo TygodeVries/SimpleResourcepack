@@ -29,8 +29,10 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 
 public final class SimpleResourcepack extends JavaPlugin {
+    private static String PROMPT_MSG;
+    private static boolean IS_FORCED;
 
-    static SimpleResourcepack instance;
+    private static SimpleResourcepack instance;
 
     /**
      * returns the instance of the plugin.
@@ -89,6 +91,9 @@ public final class SimpleResourcepack extends JavaPlugin {
         // Plugin startup logic
         instance = this;
 
+        PROMPT_MSG = getInstance().getConfig().getString("prompt", "No prompt provided");
+        IS_FORCED = getInstance().getConfig().getBoolean("forced", true);
+
         if(!getDataFolder().exists())
         {
             getDataFolder().mkdirs();
@@ -112,7 +117,7 @@ public final class SimpleResourcepack extends JavaPlugin {
         String ip = getConfig().getString("ip");
         int port = getConfig().getInt("port");
 
-        new FileHoster(ip, port);
+        FileHoster.initialize(ip, port);
 
         // Compress all current resourcepack
         Compressor.compressAll();
@@ -259,20 +264,12 @@ public final class SimpleResourcepack extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-
         // Attempt to shut down file host
-        disabled = true;
-        String ip = getConfig().getString("ip");
-        int port = getConfig().getInt("port");
 
         Bukkit.getScheduler().cancelTasks(this);
 
-        try {
-            Socket socket = new Socket(ip, port);
-            socket.close();
-        } catch (Exception e)
-        {
-            Bukkit.getLogger().info("Could not shutdown file host, waiting till timeout..." + e);
+        if (!FileHoster.isDisabled()) {
+            FileHoster.shutdown();
         }
     }
 
