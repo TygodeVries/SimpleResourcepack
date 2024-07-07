@@ -94,7 +94,8 @@ public final class SimpleResourcepack extends JavaPlugin {
 
         if(!getDataFolder().exists())
         {
-            getDataFolder().mkdirs();
+            boolean created = getDataFolder().mkdirs();
+            if (!created) getLogger().warning("Failed to create plugin data folder!");
         }
         playerPref = new PlayerPref();
         guiGenerator = new ResourcepackGUIGenerator();
