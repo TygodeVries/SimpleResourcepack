@@ -1,8 +1,0 @@
-name: SimpleResourcepack
-version: '2.5'
-main: dev.thesheep.simpleresourcepack.SimpleResourcepack
-api-version: '1.20'
-commands:
-  resourcepack:
-    usage: /resourcepack
-    aliases: [rp, pack]

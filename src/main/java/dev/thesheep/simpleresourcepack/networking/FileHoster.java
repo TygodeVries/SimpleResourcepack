@@ -3,177 +3,183 @@ package dev.thesheep.simpleresourcepack.networking;
 import dev.thesheep.simpleresourcepack.SimpleResourcepack;
 import org.bukkit.Bukkit;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.nio.file.Files;
-import java.util.Objects;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 
 public class FileHoster {
+    private static final int SLEEP_INTERVAL_MS = 20;
+    private static final int READ_TIMEOUT_MS = 5000;
+    private static final int MAX_REQUEST_LINES = 100;
 
-    private static FileHoster instance;
-    public static FileHoster getInstance()
-    {
-        return instance;
-    }
+    private static String ip;
+    private static int port;
+    private static ServerSocket serverSocket;
+    private static ExecutorService executorService;
+    private static boolean disabled = true;
 
-    public FileHoster(String ip, int port)
-    {
-        // Make sure only one instance is running
-        if(instance != null)
-        {
-            Bukkit.getLogger().severe("Cannot create another instance of the filehoster class!");
-            return;
-        }
-
-        instance = this;
-
-        this.port = port;
-        this.ip = ip;
+    public static void initialize(String ip, int port) {
+        FileHoster.ip = ip;
+        FileHoster.port = port;
+        executorService = Executors.newCachedThreadPool();
 
         try {
-            Start();
-        } catch (Exception e)
-        {
+            start();
+        } catch (Exception e) {
+            disabled = true;
             Bukkit.getLogger().severe("Failed to start resourcepack server: " + e);
         }
     }
 
-    ServerSocket serverSocket;
-
-    /**
-     *  Start file hoster
-     * @throws Exception
-     */
-    private void Start() throws Exception
-    {
+    private static void start() throws IOException {
         serverSocket = new ServerSocket(port);
         serverSocket.setSoTimeout(0);
 
-        // A sync task we use to host the server
-        Runnable runnable = new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                while(true)
-                {
-                    try
-                    {
-                        tick();
-                        Thread.sleep(20);
-                    }
-                    catch (Exception exception)
-                    {
-                        System.out.println("Failed to handle tick: " + exception);
-                    }
-                }
-            }
+        if (!isPubliclyReachable(1000)) {
+            Bukkit.getLogger().severe("Failed to start resourcepack server: Server is not publicly reachable on " + ip + ":" + port);
+            return;
+        }
 
-            public void tick() throws Exception
-            {
-                Socket socket = serverSocket.accept();
+        disabled = false;
 
-                if(SimpleResourcepack.getInstance().disabled)
-                {
-                    return;
-                }
-
-                ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-                executorService.execute(() -> {
-                    try {
-                        String path = extractPath(socket).split("/")[2];
-
-                        String completeFilePath = SimpleResourcepack.getInstance().getCacheFolder().getPath() + "/" + path + ".zip";
-
-                        if(Objects.equals(path, "fallback") || !Files.exists(new File(completeFilePath).toPath()))
-                        {
-                            socket.getOutputStream().write(HttpDataResponse.get404());
-                            socket.getOutputStream().flush();
-                            socket.close();
-                            return;
-                        }
-
-
-                        byte[] fileBytes = Files.readAllBytes(new File(completeFilePath).toPath());
-                        HttpDataResponse dataResponse = new HttpDataResponse(fileBytes);
-                        dataResponse.Send(socket);
-                        socket.close();
-                    } catch (Exception exception)
-                    {
-                        System.out.println("Failed to read request: " + exception);
-                    }
-                });
-            }
-        };
-
-        Bukkit.getScheduler().runTaskAsynchronously(SimpleResourcepack.getInstance(), runnable);
+        CompletableFuture.runAsync(FileHoster::runServer, executorService);
     }
 
-    private String extractPath(Socket socket)
-    {
-        String path = "fallback";
+    private static void runServer() {
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                tick();
+                Thread.sleep(SLEEP_INTERVAL_MS);
+            } catch (InterruptedException e) {
+                disabled = true;
+                SimpleResourcepack.getInstance().getLogger().info("Server thread interrupted");
+                break;
+            } catch (SocketException | SocketTimeoutException e) {
+                disabled = true;
+                break;
+            } catch (Exception e) {
+                disabled = true;
+                SimpleResourcepack.getInstance().getLogger().severe("Failed to handle tick: " + e);
+                break;
+            }
+        }
+    }
 
+    private static void tick() throws IOException {
+        Socket socket = serverSocket.accept();
+
+        if (disabled) {
+            socket.close();
+            return;
+        }
+
+        CompletableFuture.runAsync(() -> handleClient(socket), executorService);
+    }
+
+    private static void handleClient(Socket socket) {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            StringBuilder request = new StringBuilder();
+            if (socket.isClosed()) {
+                return;
+            }
 
-            int escape = 0;
+            socket.setSoTimeout(READ_TIMEOUT_MS);
+            String response = extractPath(socket);
+
+            if (response.equals("fallback")) {
+                sendResponse(socket, new HttpDataResponse("404 Not Found".getBytes()));
+                return;
+            }
+
+            String path = response.split("/")[2];
+            Path filePath = Paths.get(SimpleResourcepack.getInstance().getCacheFolder().getPath(), path + ".zip");
+
+            if (!Files.exists(filePath)) {
+                return;
+            }
+
+            byte[] fileBytes = Files.readAllBytes(filePath);
+            sendResponse(socket, new HttpDataResponse(fileBytes));
+        } catch (Exception e) {
+            SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Failed to handle client request", e);
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Failed to close client socket", e);
+            }
+        }
+    }
+
+    private static void sendResponse(Socket socket, HttpDataResponse response) throws Exception {
+        response.Send(socket);
+    }
+
+    private static String extractPath(Socket socket) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        try {
             String line;
-            while ((line = reader.readLine()) != null && !line.isEmpty() && escape < 20000) {
-                request.append(line).append("\r\n");
-                escape++;
-                Thread.sleep(10);
-            }
-
-            if(!(escape < 20000))
-            {
-                System.out.println("Escaped client read.");
-                return path;
-            }
-
-            String[] lines = request.toString().split("\r\n");
-
-            if (lines.length > 0 && lines[0].startsWith("GET")) {
-                String[] parts = lines[0].split("\\s+");
-                if (parts.length > 1) {
-                    path = parts[1];
+            int lineCount = 0;
+            while ((line = reader.readLine()) != null && !line.isEmpty() && lineCount < MAX_REQUEST_LINES) {
+                if (line.startsWith("GET")) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length > 1) {
+                        return parts[1];
+                    }
                 }
+                lineCount++;
             }
-        }
-        catch (Exception exception)
-        {
-            System.out.println(exception);
+        } catch (IOException e) {
+            Bukkit.getLogger().log(Level.WARNING, "Error reading from socket", e);
         }
 
-
-
-        return path;
+        return "fallback";
     }
 
-    int port;
+    public static boolean isPubliclyReachable(int timeoutMs) {
+        if (ip == null) {
+            Bukkit.getLogger().warning("Could not determine external IP address.");
+            return false;
+        }
 
-    /**
-     * The port that is used to host the packs
-     * @return
-     */
-    public int getPort() { return port; }
-    public void setPort(int port)
-    {
-        this.port = port;
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(ip, port), timeoutMs);
+            return true;
+        } catch (IOException e) {
+            Bukkit.getLogger().warning("Server is not publicly reachable: " + e.getMessage());
+            return false;
+        }
     }
 
-    String ip;
+    public static int getPort() {
+        return port;
+    }
 
-    /**
-     * The ip the server is hosted on
-     * @return
-     */
-    public String getIp() {return ip; }
-    public void setIp(String ip) { this.ip = ip; }
+    public static String getIp() {
+        return ip;
+    }
+
+    public static boolean isDisabled() {
+        return disabled;
+    }
+
+    public static void shutdown() {
+        try {
+            disabled = true;
+
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+            if (executorService != null) {
+                executorService.shutdownNow();
+            }
+        } catch (IOException e) {
+            SimpleResourcepack.getInstance().getLogger().log(Level.SEVERE, "Error shutting down FileHoster", e);
+        }
+    }
 }

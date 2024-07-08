@@ -1,7 +1,7 @@
 name: SimpleResourcepack
-version: '${project.version}'
+version: '${version}'
 main: dev.thesheep.simpleresourcepack.SimpleResourcepack
-api-version: '1.20'
+api-version: '${apiVersion}'
 commands:
   resourcepack:
     usage: /resourcepack

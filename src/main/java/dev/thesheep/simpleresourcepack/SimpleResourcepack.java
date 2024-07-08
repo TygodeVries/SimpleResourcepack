@@ -5,12 +5,12 @@ import dev.thesheep.simpleresourcepack.api.ResourcepackCommandSuggestions;
 import dev.thesheep.simpleresourcepack.api.ResourcepackGUIEvents;
 import dev.thesheep.simpleresourcepack.api.ResourcepackGUIGenerator;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
-
 import dev.thesheep.simpleresourcepack.api.players.ResourcepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
+import dev.thesheep.simpleresourcepack.versioning.ActionBarCompatibilityManager;
+import dev.thesheep.simpleresourcepack.versioning.ResourcePackCompatibilityManager;
 import dev.thesheep.simpleresourcepack.networking.FileHoster;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
@@ -19,20 +19,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.Callable;
 
-import org.bstats.bukkit.Metrics;
 public final class SimpleResourcepack extends JavaPlugin {
+    private static String PROMPT_MSG;
+    private static boolean IS_FORCED;
 
-    static SimpleResourcepack instance;
+    private static SimpleResourcepack instance;
 
     /**
      * returns the instance of the plugin.
@@ -73,7 +71,7 @@ public final class SimpleResourcepack extends JavaPlugin {
 
     /**
      * Returns the PlayerPrefs object.
-     * @return
+     * @return The PlayerPrefs object
      */
     public PlayerPref getPlayerPref()
     {
@@ -91,20 +89,19 @@ public final class SimpleResourcepack extends JavaPlugin {
         // Plugin startup logic
         instance = this;
 
+        PROMPT_MSG = getInstance().getConfig().getString("prompt", "No prompt provided");
+        IS_FORCED = getInstance().getConfig().getBoolean("forced", true);
+
         if(!getDataFolder().exists())
         {
-            getDataFolder().mkdirs();
+            boolean created = getDataFolder().mkdirs();
+            if (!created) getLogger().warning("Failed to create plugin data folder!");
         }
         playerPref = new PlayerPref();
         guiGenerator = new ResourcepackGUIGenerator();
 
         Metrics metrics = new Metrics(this, 21182);
-        metrics.addCustomChart(new SingleLineChart("resourcepacks", new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                return Objects.requireNonNull(getResourcepackFolder().listFiles()).length;
-            }
-        }));
+        metrics.addCustomChart(new SingleLineChart("resourcepacks", () -> Objects.requireNonNull(getResourcepackFolder().listFiles()).length));
 
 
         this.getServer().getPluginManager().registerEvents(new ResourcepackGUIEvents(), this);
@@ -119,7 +116,7 @@ public final class SimpleResourcepack extends JavaPlugin {
         String ip = getConfig().getString("ip");
         int port = getConfig().getInt("port");
 
-        new FileHoster(ip, port);
+        FileHoster.initialize(ip, port);
 
         // Compress all current resourcepack
         Compressor.compressAll();
@@ -155,11 +152,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             if (!Files.exists(getResourcepackFolder().toPath())) {
                 Files.createDirectory(getResourcepackFolder().toPath());
 
-                Files.createDirectory(new File(getResourcepackFolder() + "/default").toPath());
-                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets").toPath());
-                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft").toPath());
-                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft/textures").toPath());
-                Files.createDirectory(new File(getResourcepackFolder() + "/default/assets/minecraft/textures/item").toPath());
+                Files.createDirectories(new File(getResourcepackFolder() + "/default/assets/minecraft/textures/item").toPath());
 
                 String packContent = "{\n" +
                         "    \"pack\": {\n" +
@@ -178,7 +171,6 @@ public final class SimpleResourcepack extends JavaPlugin {
         } catch (Exception e)
         {
             Bukkit.getLogger().severe("Failed to generate basic files!\n" + e);
-            return;
         }
     }
 
@@ -204,30 +196,30 @@ public final class SimpleResourcepack extends JavaPlugin {
      */
     public void sendResourcepack(Player player, String name)
     {
-            if(name.endsWith(".zip"))
-            {
-                Bukkit.getLogger().severe("Don't include the .zip in the name of your pack. The current name is " + name);
-                return;
-            }
+        if(name.endsWith(".zip"))
+        {
+            Bukkit.getLogger().severe("Don't include the .zip in the name of your pack. The current name is " + name);
+            return;
+        }
 
-            // Should prob improve this
-            boolean exists = false;
-            for(File file : Objects.requireNonNull(getCacheFolder().listFiles()))
+        // TODO: Should prob improve this
+        boolean exists = false;
+        for(File file : Objects.requireNonNull(getCacheFolder().listFiles()))
+        {
+	        if(file.getName().contains(name))
             {
-                if(file.getName().contains(name))
-                    exists = true;
-            }
+		        exists = true;
+		        break;
+	        }
+        }
 
-            if(!exists)
-            {
-                Bukkit.getLogger().severe("Attempted to update the resourcepack of player " + player.getName() + " but the pack " + name + " could not be found.");
-                return;
-            }
+        if(!exists)
+        {
+            Bukkit.getLogger().severe("Attempted to update the resourcepack of player " + player.getName() + " but the pack " + name + " could not be found.");
+            return;
+        }
 
-            FileHoster hoster = FileHoster.getInstance();
-            String prompt = SimpleResourcepack.getInstance().getConfig().getString("prompt", "No prompt provided");
-            boolean forced = SimpleResourcepack.getInstance().getConfig().getBoolean("forced", true);
-            player.addResourcePack(UUID.randomUUID(), "http://" + hoster.getIp() + ":" + hoster.getPort() + "/" + System.currentTimeMillis() + "/" + name, null, prompt, forced);
+        ResourcePackCompatibilityManager.addResourcePack(player, name, PROMPT_MSG, IS_FORCED);
     }
 
     /**
@@ -236,10 +228,8 @@ public final class SimpleResourcepack extends JavaPlugin {
      */
     public void removeResourcepacks(Player player)
     {
-        player.removeResourcePacks();
+        ResourcePackCompatibilityManager.removeResourcePacks(player);
     }
-
-
 
     public void sendActivePacks(Player player)
     {
@@ -249,10 +239,9 @@ public final class SimpleResourcepack extends JavaPlugin {
             sendResourcepack(player, ac);
             String msg = SimpleResourcepack.getInstance().getConfig().getString("message_downloading", "");
             player.sendMessage(msg);
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
+            ActionBarCompatibilityManager.sendActionBar(player, msg);
         }
     }
-
 
     /**
      * Send all the resourcepacks to a player that a player should have on by default
@@ -268,26 +257,15 @@ public final class SimpleResourcepack extends JavaPlugin {
         }
     }
 
-
-    public boolean disabled = false;
-
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-
         // Attempt to shut down file host
-        disabled = true;
-        String ip = getConfig().getString("ip");
-        int port = getConfig().getInt("port");
 
         Bukkit.getScheduler().cancelTasks(this);
 
-        try {
-            Socket socket = new Socket(ip, port);
-            socket.close();
-        } catch (Exception e)
-        {
-            Bukkit.getLogger().info("Could not shutdown file host, waiting till timeout..." + e);
+        if (!FileHoster.isDisabled()) {
+            FileHoster.shutdown();
         }
     }
 
