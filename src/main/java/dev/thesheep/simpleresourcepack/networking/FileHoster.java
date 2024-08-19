@@ -40,7 +40,6 @@ public class FileHoster {
     private static void start() throws IOException {
         serverSocket = new ServerSocket(port);
         serverSocket.setSoTimeout(0);
-
         if (!isPubliclyReachable(1000)) {
             Bukkit.getLogger().severe("Failed to start resourcepack server: Server is not publicly reachable on " + ip + ":" + port);
             return;
@@ -91,8 +90,9 @@ public class FileHoster {
             socket.setSoTimeout(READ_TIMEOUT_MS);
             String response = extractPath(socket);
 
-            if (response.equals("fallback")) {
-                sendResponse(socket, new HttpDataResponse("404 Not Found".getBytes()));
+            if (response == null) {
+                Bukkit.getLogger().warning("A fallback has been requested.");
+                socket.getOutputStream().write(HttpDataResponse.get404());
                 return;
             }
 
@@ -138,7 +138,7 @@ public class FileHoster {
             Bukkit.getLogger().log(Level.WARNING, "Error reading from socket", e);
         }
 
-        return "fallback";
+        return null;
     }
 
     public static boolean isPubliclyReachable(int timeoutMs) {
