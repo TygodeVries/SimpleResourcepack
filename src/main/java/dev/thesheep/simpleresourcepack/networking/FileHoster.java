@@ -14,7 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class FileHoster {
-    private static final int SLEEP_INTERVAL_MS = 20;
     private static final int READ_TIMEOUT_MS = 5000;
     private static final int MAX_REQUEST_LINES = 100;
 
@@ -54,11 +53,6 @@ public class FileHoster {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 tick();
-                Thread.sleep(SLEEP_INTERVAL_MS);
-            } catch (InterruptedException e) {
-                disabled = true;
-                SimpleResourcepack.getInstance().getLogger().info("Server thread interrupted");
-                break;
             } catch (SocketException | SocketTimeoutException e) {
                 disabled = true;
                 SimpleResourcepack.getInstance().getLogger().severe("A network socket exception occurred. This may be due to a network issue, try restarting!");
