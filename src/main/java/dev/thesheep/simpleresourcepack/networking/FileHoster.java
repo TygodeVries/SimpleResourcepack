@@ -145,6 +145,10 @@ public class FileHoster {
     }
 
     public static boolean isPubliclyReachable(int timeoutMs) {
+        if (System.getenv("DEVELOPMENT") != null) {
+            return true;
+        }
+
         if (ip == null) {
             Bukkit.getLogger().warning("Could not determine external IP address.");
             return false;
