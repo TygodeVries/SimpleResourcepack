@@ -90,7 +90,7 @@ public class FileHoster {
             String response = extractPath(socket);
 
             if (response == null) {
-                Bukkit.getLogger().warning("A fallback has been requested.");
+                Bukkit.getLogger().warning("A fallback has been requested by " + socket.getInetAddress() + ":" + socket.getPort());
                 socket.getOutputStream().write(HttpDataResponse.get404());
                 return;
             }
@@ -104,6 +104,10 @@ public class FileHoster {
 
             byte[] fileBytes = Files.readAllBytes(filePath);
             sendResponse(socket, new HttpDataResponse(fileBytes));
+        } catch (SocketTimeoutException e) {
+            SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Client took too long to receive data", e);
+        } catch (IOException e) {
+            SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Error sending response to client", e);
         } catch (Exception e) {
             SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Failed to handle client request", e);
         } finally {
