@@ -61,6 +61,8 @@ public class FileHoster {
                 break;
             } catch (SocketException | SocketTimeoutException e) {
                 disabled = true;
+                SimpleResourcepack.getInstance().getLogger().severe("A network socket exception occurred. This may be due to a network issue, try restarting!");
+                SimpleResourcepack.getInstance().getLogger().severe("Exception: " + e);
                 break;
             } catch (Exception e) {
                 disabled = true;
