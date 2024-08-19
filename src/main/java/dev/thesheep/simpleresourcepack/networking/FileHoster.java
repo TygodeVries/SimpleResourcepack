@@ -54,10 +54,13 @@ public class FileHoster {
             try {
                 tick();
             } catch (SocketException | SocketTimeoutException e) {
-                disabled = true;
-                SimpleResourcepack.getInstance().getLogger().severe("A network socket exception occurred. This may be due to a network issue, try restarting!");
-                SimpleResourcepack.getInstance().getLogger().severe("Exception: " + e);
-                break;
+                if (SimpleResourcepack.getInstance().isEnabled()) {
+                    SimpleResourcepack.getInstance().getLogger().severe("A network socket exception occurred. This may be due to a network issue, try restarting!");
+                    SimpleResourcepack.getInstance().getLogger().severe("Exception: " + e);
+                } else {
+                    disabled = true;
+                    break;
+                }
             } catch (Exception e) {
                 disabled = true;
                 SimpleResourcepack.getInstance().getLogger().severe("Failed to handle tick: " + e);
