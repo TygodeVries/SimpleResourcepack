@@ -14,7 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class FileHoster {
-    private static final int SLEEP_INTERVAL_MS = 20;
     private static final int READ_TIMEOUT_MS = 5000;
     private static final int MAX_REQUEST_LINES = 100;
 
@@ -54,14 +53,14 @@ public class FileHoster {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 tick();
-                Thread.sleep(SLEEP_INTERVAL_MS);
-            } catch (InterruptedException e) {
-                disabled = true;
-                SimpleResourcepack.getInstance().getLogger().info("Server thread interrupted");
-                break;
             } catch (SocketException | SocketTimeoutException e) {
-                disabled = true;
-                break;
+                if (SimpleResourcepack.getInstance().isEnabled()) {
+                    SimpleResourcepack.getInstance().getLogger().severe("A network socket exception occurred. This may be due to a network issue, try restarting!");
+                    SimpleResourcepack.getInstance().getLogger().severe("Exception: " + e);
+                } else {
+                    disabled = true;
+                    break;
+                }
             } catch (Exception e) {
                 disabled = true;
                 SimpleResourcepack.getInstance().getLogger().severe("Failed to handle tick: " + e);
@@ -91,7 +90,7 @@ public class FileHoster {
             String response = extractPath(socket);
 
             if (response == null) {
-                Bukkit.getLogger().warning("A fallback has been requested.");
+                Bukkit.getLogger().warning("A fallback has been requested by " + socket.getInetAddress() + ":" + socket.getPort());
                 socket.getOutputStream().write(HttpDataResponse.get404());
                 return;
             }
@@ -105,6 +104,10 @@ public class FileHoster {
 
             byte[] fileBytes = Files.readAllBytes(filePath);
             sendResponse(socket, new HttpDataResponse(fileBytes));
+        } catch (SocketTimeoutException e) {
+            SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Client took too long to receive data", e);
+        } catch (IOException e) {
+            SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Error sending response to client", e);
         } catch (Exception e) {
             SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Failed to handle client request", e);
         } finally {
@@ -142,6 +145,10 @@ public class FileHoster {
     }
 
     public static boolean isPubliclyReachable(int timeoutMs) {
+        if (System.getenv("DEVELOPMENT") != null) {
+            return true;
+        }
+
         if (ip == null) {
             Bukkit.getLogger().warning("Could not determine external IP address.");
             return false;
