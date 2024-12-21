@@ -22,8 +22,9 @@ hs_err_pid*
 # Mac
 .DS_Store
 
-# Maven
-log/
+# Gradle
+gradlew.bat
+gradlew
 
 # Inclusions
 !lib/**
