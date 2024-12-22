@@ -48,7 +48,7 @@ public class DisableSubCommand extends SubCommand {
         Configuration configuration = SimpleResourcepack.getInstance().getResourcepackConfig(packName);
         if (configuration == null)
         {
-            commandSender.sendMessage("§cResourcepack settings where not found.");
+            commandSender.sendMessage("§cResourcepack settings were not found.");
             return;
         }
 
