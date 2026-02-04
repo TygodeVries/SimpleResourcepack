@@ -100,7 +100,12 @@ public class FileHoster {
             Path filePath = Paths.get(SimpleResourcepack.getInstance().getCacheFolder().getPath(), path + ".zip");
 
             if (!Files.exists(filePath)) {
-                return;
+
+                // Try a backup path
+                filePath = Paths.get(SimpleResourcepack.getInstance().getCacheFolder().getPath(), path);
+                if(!Files.exists(filePath)) {
+                    return;
+                }
             }
 
             byte[] fileBytes = Files.readAllBytes(filePath);

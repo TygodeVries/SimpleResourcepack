@@ -196,12 +196,6 @@ public final class SimpleResourcepack extends JavaPlugin {
      */
     public void sendResourcepack(Player player, String name)
     {
-        if(name.endsWith(".zip"))
-        {
-            Bukkit.getLogger().severe("Don't include the .zip in the name of your pack. The current name is " + name);
-            return;
-        }
-
         // TODO: Should prob improve this
         boolean exists = false;
         for(File file : Objects.requireNonNull(getCacheFolder().listFiles()))
@@ -269,16 +263,32 @@ public final class SimpleResourcepack extends JavaPlugin {
         }
     }
 
-    public Configuration getResourcepackConfig(String packName)
-    {
-        File f = new File(SimpleResourcepack.getInstance().getSettingsFolder().toPath() + "/" + packName + ".yml");
+    public Configuration getResourcepackConfig(String packName) {
+        File f = new File(
+                SimpleResourcepack.getInstance().getSettingsFolder(),
+                packName + ".yml"
+        );
 
-        if(!f.exists())
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
+
+        List<String> defaultLore = new ArrayList<>();
+        defaultLore.add("§cDefault Settings, Please change in settings/" + packName + ".yml");
+
+        config.addDefault("name", packName);
+        config.addDefault("material", "JUKEBOX");
+        config.addDefault("lore", defaultLore);
+        config.addDefault("permission", "none");
+
+        config.options().copyDefaults(true);
+
+        try {
+            config.save(f);
+        } catch (Exception e)
         {
-            return null;
+           Bukkit.getLogger().severe("Failed to save a default configuration for a resourcepack because: " + e);
         }
-
-        return YamlConfiguration.loadConfiguration(f);
+        return config;
     }
+
 
 }

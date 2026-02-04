@@ -5,6 +5,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class Compressor {
     /**
@@ -14,11 +17,35 @@ public class Compressor {
      */
     public static CompressorTask createCompressionTask(File folder, boolean silent)
     {
+
         if(!folder.exists())
         {
             Bukkit.getLogger().severe("Could not find the folder specified.");
             return null;
         }
+
+        if(folder.isFile())
+        {
+            if(folder.getPath().endsWith(".zip"))
+            {
+                Bukkit.getLogger().info("Detected precompressed resourcepack at " + folder.getPath());
+
+                String dest = SimpleResourcepack.getInstance().getCacheFolder().getPath() + "/" + folder.getName();
+
+                try {
+                    Files.copy(folder.toPath(), new File(dest).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                } catch (Exception e)
+                {
+                    Bukkit.getLogger().severe("Could not copy precompressed resource pack because " + e);
+                }
+                return null;
+            }
+
+            Bukkit.getLogger().info("Could not compress " + folder.getPath() + " not a folder, and an unknown format.");
+            return null;
+        }
+
+        Bukkit.getLogger().info("Compressing resourcepack at: " + folder.getPath().toString());
 
         CompressorTask compressorTask = new CompressorTask(folder);
         compressorTask.start();

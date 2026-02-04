@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dev.thesheep"
-version = "2.7"
+version = "2.8"
 
 val earliestSupportedAPIVersion = "1.16"
 
@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     implementation("org.bstats:bstats-bukkit:3.0.2")
-    compileOnly("org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.21.10-R0.1-SNAPSHOT")
 }
 
 tasks.withType<JavaCompile> {
