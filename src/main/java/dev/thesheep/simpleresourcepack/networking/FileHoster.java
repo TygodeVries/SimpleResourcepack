@@ -41,17 +41,22 @@ public class FileHoster {
         serverSocket = new ServerSocket(port);
         serverSocket.setSoTimeout(0);
 
+        SimpleResourcepack.debugLog("Checking if server is publicly available.");
         if (!isPubliclyReachable(1000)) {
             Bukkit.getLogger().severe("Failed to start resourcepack server: Server is not publicly reachable on " + ip + ":" + port);
             return;
         }
+        SimpleResourcepack.debugLog("Check done!");
 
         disabled = false;
 
         CompletableFuture.runAsync(FileHoster::runServer, executorService);
+
+        SimpleResourcepack.debugLog("Server is now running on port " + port);
     }
 
     private static void runServer() {
+
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 tick();
@@ -62,6 +67,7 @@ public class FileHoster {
                 break;
             } catch (SocketException | SocketTimeoutException e) {
                 disabled = true;
+                SimpleResourcepack.getInstance().getLogger().severe("The file hosting sever crashed! " + e);
                 break;
             } catch (Exception e) {
                 disabled = true;
@@ -75,7 +81,12 @@ public class FileHoster {
         Socket socket = serverSocket.accept();
 
         if (disabled) {
-            socket.close();
+            try {
+                socket.close();
+            } catch (Exception e)
+            {
+                SimpleResourcepack.debugLog("The file server has shutdown, rejecting connections.");
+            }
             return;
         }
 
@@ -83,35 +94,85 @@ public class FileHoster {
     }
 
     private static void handleClient(Socket socket) {
+        String response = "none";
+        String path = "none";
+
         try {
+
+            SimpleResourcepack.debugLog("Starting to handle client...");
+
+            SimpleResourcepack.debugLog(
+                    "Connection from " + socket.getRemoteSocketAddress()
+            );
+
             if (socket.isClosed()) {
                 return;
             }
 
             socket.setSoTimeout(READ_TIMEOUT_MS);
-            String response = extractPath(socket);
+
+            SimpleResourcepack.debugLog("Extracting file path from client.");
+            response = extractPath(socket);
 
             if (response.equals("fallback")) {
-                sendResponse(socket, new HttpDataResponse("404 Not Found".getBytes()));
+                SimpleResourcepack.debugLog("Using fallback 404!");
+                sendResponse(socket, new HttpDataResponse(HttpDataResponse.get404()));
                 return;
             }
 
-            String path = response.split("/")[2];
+            if(response.equalsIgnoreCase("/health"))
+            {
+                SimpleResourcepack.debugLog("Got the health check, nice!");
+                return;
+            }
+
+            String[] parts = response.split("/");
+            if(parts.length != 3)
+            {
+                SimpleResourcepack.debugLog("Got an invalid request format. (" + response + ") ignoring it.");
+                socket.close();
+                return;
+            }
+
+            path = parts[2];
+
+            SimpleResourcepack.debugLog("Path is " + path);
+
             Path filePath = Paths.get(SimpleResourcepack.getInstance().getCacheFolder().getPath(), path + ".zip");
 
-            if (!Files.exists(filePath)) {
+            SimpleResourcepack.debugLog("Filepath is " + filePath);
 
+            if (!Files.exists(filePath)) {
                 // Try a backup path
                 filePath = Paths.get(SimpleResourcepack.getInstance().getCacheFolder().getPath(), path);
                 if(!Files.exists(filePath)) {
+
+                    SimpleResourcepack.debugLog("File does not exist!");
                     return;
                 }
             }
 
+
+            SimpleResourcepack.debugLog("Reading file data...");
             byte[] fileBytes = Files.readAllBytes(filePath);
+
+
+            SimpleResourcepack.debugLog("Sending response");
             sendResponse(socket, new HttpDataResponse(fileBytes));
-        } catch (Exception e) {
-            SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Failed to handle client request", e);
+        }
+        catch (SocketException e) {
+            if ("Broken pipe".equalsIgnoreCase(e.getMessage())) {
+                SimpleResourcepack.debugLog(
+                        "Client disconnected during transfer. " + e
+                );
+                return;
+            }
+            else {
+                SimpleResourcepack.getInstance().getLogger().log(Level.SEVERE, "SocketException: " + e);
+            }
+        }
+        catch (Exception e) {
+            SimpleResourcepack.getInstance().getLogger().log(Level.WARNING, "Failed to handle client request: " + response + " on path " + path + " because: ", e);
         } finally {
             try {
                 socket.close();
@@ -122,7 +183,7 @@ public class FileHoster {
     }
 
     private static void sendResponse(Socket socket, HttpDataResponse response) throws Exception {
-        response.Send(socket);
+        response.send(socket);
     }
 
     private static String extractPath(Socket socket) throws IOException {
@@ -131,7 +192,8 @@ public class FileHoster {
             String line;
             int lineCount = 0;
             while ((line = reader.readLine()) != null && !line.isEmpty() && lineCount < MAX_REQUEST_LINES) {
-                if (line.startsWith("GET")) {
+                SimpleResourcepack.debugLog("Request line: " + line);
+                if (line.startsWith("GET") || line.startsWith("HEAD")) {
                     String[] parts = line.split("\\s+");
                     if (parts.length > 1) {
                         return parts[1];
@@ -142,6 +204,8 @@ public class FileHoster {
         } catch (IOException e) {
             Bukkit.getLogger().log(Level.WARNING, "Error reading from socket", e);
         }
+
+        SimpleResourcepack.debugLog("Could not get correct path.");
 
         return "fallback";
     }
@@ -154,6 +218,11 @@ public class FileHoster {
 
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(ip, port), timeoutMs);
+
+            OutputStream out = socket.getOutputStream();
+            out.write("GET /health HTTP/1.1\r\n\r\n".getBytes());
+            out.flush();
+
             return true;
         } catch (IOException e) {
             Bukkit.getLogger().warning("Server is not publicly reachable: " + e.getMessage());
@@ -174,6 +243,8 @@ public class FileHoster {
     }
 
     public static void shutdown() {
+
+        SimpleResourcepack.debugLog("Shutting down server...");
         try {
             disabled = true;
 

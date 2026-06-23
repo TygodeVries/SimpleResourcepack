@@ -43,6 +43,7 @@ public class PlayerPref {
 
     public void setResourcepackPreferences(Player player, List<String> packs)
     {
+        if(SimpleResourcepack.getInstance().isDebugMode())
         playerPreferences.set("resourcepacks." + player.getUniqueId(), packs);
 
         try {

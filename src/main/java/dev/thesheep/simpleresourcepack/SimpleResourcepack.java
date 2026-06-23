@@ -89,6 +89,11 @@ public final class SimpleResourcepack extends JavaPlugin {
         // Plugin startup logic
         instance = this;
 
+        if(isDebugMode())
+        {
+            getLogger().info("Debug mode is enabled!");
+        }
+
         PROMPT_MSG = getInstance().getConfig().getString("prompt", "No prompt provided");
         IS_FORCED = getInstance().getConfig().getBoolean("forced", true);
 
@@ -97,6 +102,7 @@ public final class SimpleResourcepack extends JavaPlugin {
             boolean created = getDataFolder().mkdirs();
             if (!created) getLogger().warning("Failed to create plugin data folder!");
         }
+
         playerPref = new PlayerPref();
         guiGenerator = new ResourcepackGUIGenerator();
 
@@ -109,6 +115,7 @@ public final class SimpleResourcepack extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new ResourcepackEvents(), this);
         Objects.requireNonNull(this.getCommand("resourcepack")).setExecutor(new ResourcepackCommand());
         Objects.requireNonNull(this.getCommand("resourcepack")).setTabCompleter(new ResourcepackCommandSuggestions());
+
         // Generate basic files for first-time use
         generateFiles();
 
@@ -116,10 +123,22 @@ public final class SimpleResourcepack extends JavaPlugin {
         String ip = getConfig().getString("ip");
         int port = getConfig().getInt("port");
 
+        if(isDebugMode())
+        {
+            getLogger().info("Setup done, starting hosting.");
+        }
+
         FileHoster.initialize(ip, port);
 
         // Compress all current resourcepack
         Compressor.compressAll();
+    }
+
+    public static void debugLog(String msg) {
+        if(getInstance().isDebugMode())
+        {
+            getInstance().getLogger().info(msg);
+        }
     }
 
     /**
@@ -172,6 +191,10 @@ public final class SimpleResourcepack extends JavaPlugin {
         {
             Bukkit.getLogger().severe("Failed to generate basic files!\n" + e);
         }
+    }
+
+    public boolean isDebugMode() {
+        return getConfig().getBoolean("debug", false);
     }
 
     /**
