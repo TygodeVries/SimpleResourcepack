@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dev.thesheep"
-version = "2.8"
+version = "2.8.1"
 
 val earliestSupportedAPIVersion = "1.16"
 

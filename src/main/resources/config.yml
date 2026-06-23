@@ -7,12 +7,14 @@
 ip: "e.x.a.m.p.l.e"
 port: 25564
 
+# If extra debug messages should be send to the console.
+debug: false
 
 ####################
 #   Resourcepacks  #
 ####################
 
-# If the player is forced to enable the resourcepack
+# If the player is forced to enable the resourcepack.
 forced: true
 
 # The resourcepacks that should be applied when the player joins.
@@ -25,7 +27,7 @@ default: ["default"]
 ####################
 
 # Every bot to run before resourcepacks are loaded.
-# For example, copying a resourcepack from another plugin like oraxen.
+# For example, copying a resourcepack from another plugin like oraxen, or ItemsAdder
 execute_before_load: []
 
 ####################

@@ -1,5 +1,7 @@
 package dev.thesheep.simpleresourcepack.networking;
 
+import dev.thesheep.simpleresourcepack.SimpleResourcepack;
+
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -26,8 +28,11 @@ public class HttpDataResponse {
      * @param socket
      * @throws Exception
      */
-    public void Send(Socket socket) throws Exception
+    public void send(Socket socket) throws Exception
     {
+
+
+        SimpleResourcepack.debugLog("Sending response...");
         String fileName = "simplerp-" + System.currentTimeMillis();
 
         String httpResponse = "HTTP/1.1 200 OK\r\n" +
@@ -37,8 +42,14 @@ public class HttpDataResponse {
                 "\r\n";
 
         byte[] httpResponseBytes = httpResponse.getBytes(StandardCharsets.UTF_8);
+
+        SimpleResourcepack.debugLog("Sending headers...");
         socket.getOutputStream().write(httpResponseBytes);
+
+        SimpleResourcepack.debugLog("Sending data...");
+
         socket.getOutputStream().write(data);
+        SimpleResourcepack.debugLog("Flushing...");
         socket.getOutputStream().flush();
     }
 

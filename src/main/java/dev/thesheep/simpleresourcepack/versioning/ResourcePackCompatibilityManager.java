@@ -45,6 +45,7 @@ public class ResourcePackCompatibilityManager {
 		try {
 			String url = "http://" + FileHoster.getIp() + ":" + FileHoster.getPort() + "/" + System.currentTimeMillis() + "/" + name;
 
+			SimpleResourcepack.debugLog("Using path " + url + " as resourcepack URL");
 			if (USE_LEGACY_METHOD) {
 				addResourcePackMethod.invoke(player, url);
 				if (prompt != null && !prompt.isEmpty()) player.sendMessage(prompt);
