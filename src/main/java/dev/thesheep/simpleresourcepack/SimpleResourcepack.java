@@ -4,6 +4,8 @@ import dev.thesheep.simpleresourcepack.api.ResourcepackCommand;
 import dev.thesheep.simpleresourcepack.api.ResourcepackCommandSuggestions;
 import dev.thesheep.simpleresourcepack.api.ResourcepackGUIEvents;
 import dev.thesheep.simpleresourcepack.api.ResourcepackGUIGenerator;
+import dev.thesheep.simpleresourcepack.api.bots.Bot;
+import dev.thesheep.simpleresourcepack.api.bots.BotScript;
 import dev.thesheep.simpleresourcepack.api.players.PlayerPref;
 import dev.thesheep.simpleresourcepack.api.players.ResourcepackEvents;
 import dev.thesheep.simpleresourcepack.file.Compressor;
@@ -17,14 +19,23 @@ import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public final class SimpleResourcepack extends JavaPlugin {
     private static String PROMPT_MSG;
@@ -52,6 +63,58 @@ public final class SimpleResourcepack extends JavaPlugin {
         return new File(folderPath + "/resourcepacks");
     }
 
+    public void reloadResourcepackFiles()
+    {
+        reloadResourcepackFilesWithDebug(null);
+    }
+
+    public void reloadResourcepackFilesWithDebug(Player player)
+    {
+        SimpleResourcepack.getInstance().getLogger().info("§7Loading config...");
+        if(player != null)
+        {
+            player.sendMessage("§7Loading config...");
+        }
+
+        SimpleResourcepack.getInstance().reloadConfig();
+
+
+        if(getConfig().contains("execute_before_load")) {
+            for (String scriptName : getConfig().getStringList("execute_before_load")) {
+
+                BotScript script = BotScript.getBotScriptFromFile(new File(getBotsFolder(), scriptName));
+
+                Bot bot = new Bot(script.getCommands(), new Consumer<String>() {
+                    @Override
+                    public void accept(String s) {
+                        player.sendMessage(s);
+                        SimpleResourcepack.getInstance().getLogger().info(s);
+                    }
+                }, new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        redoPacks();
+                    }
+                });
+
+                bot.execute();
+            }
+        }
+        else {
+            getLogger().warning("No bot commands have been set in execute_before_load. If that is intentional, you can ignore this message.");
+            redoPacks();
+        }
+
+    }
+
+    private void redoPacks() {
+        Compressor.compressAll();
+
+
+        String msg = getConfig().getString("message_update", "");
+        Bukkit.broadcastMessage(msg);
+    }
+
     public File getSettingsFolder()
     {
         String folderPath = getDataFolder().getPath();
@@ -65,6 +128,15 @@ public final class SimpleResourcepack extends JavaPlugin {
     {
         String folderPath = getDataFolder().getPath();
         return new File(folderPath + "/cache");
+    }
+
+    /**
+     * Returns the folder of bots
+     */
+    public File getBotsFolder()
+    {
+        String folderPath = getDataFolder().getPath();
+        return new File(folderPath + "/bots");
     }
 
     private PlayerPref playerPref;
@@ -132,6 +204,7 @@ public final class SimpleResourcepack extends JavaPlugin {
         try {
             saveDefaultConfig();
 
+            // Default setting
             if(!Files.exists(getSettingsFolder().toPath()))
             {
                 Files.createDirectory(getSettingsFolder().toPath());
@@ -151,23 +224,15 @@ public final class SimpleResourcepack extends JavaPlugin {
             // resource-pack folder
             if (!Files.exists(getResourcepackFolder().toPath())) {
                 Files.createDirectory(getResourcepackFolder().toPath());
-
-                Files.createDirectories(new File(getResourcepackFolder() + "/default/assets/minecraft/textures/item").toPath());
-
-                String packContent = "{\n" +
-                        "    \"pack\": {\n" +
-                        "        \"description\": \"Simple Resourcepack, Change this!\",\n" +
-                        "        \"pack_format\": 22\n" +
-                        "    }\n" +
-                        "}";
-                Path mcmetaPath = new File(getResourcepackFolder() + "/default/pack.mcmeta").toPath();
-                Files.createFile(mcmetaPath);
-                Files.write(mcmetaPath, packContent.getBytes(StandardCharsets.UTF_8));
+                setupResourcepackFolder();
             }
 
             // Cache folder
             if (!Files.exists(getCacheFolder().toPath()))
                 Files.createDirectory(getCacheFolder().toPath());
+
+            if (!Files.exists(getBotsFolder().toPath()))
+                Files.createDirectory(getBotsFolder().toPath());
         } catch (Exception e)
         {
             Bukkit.getLogger().severe("Failed to generate basic files!\n" + e);
@@ -245,7 +310,7 @@ public final class SimpleResourcepack extends JavaPlugin {
     {
         removeResourcepacks(player);
 
-        for(String name : SimpleResourcepack.getInstance().getConfig().getStringList("default"))
+        for(String name : SimpleResourcepack.getInstance().getConfig().getStringList("resourcepacks"))
         {
             sendResourcepack(player, name);
         }
@@ -289,6 +354,80 @@ public final class SimpleResourcepack extends JavaPlugin {
         }
         return config;
     }
+    public void setupResourcepackFolder() {
+        File folder = getResourcepackFolder(); // Assumed method returning your target directory
+        Path folderPath = folder.toPath();
 
+        if (!Files.exists(folderPath)) {
+            try {
+                Files.createDirectories(folderPath);
+                // Copy the contents of the "resourcepacks" folder inside your JAR to the plugin data folder
+                copyResourceDir("resourcepacks", folder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void copyResourceDir(String sourceDir, File targetDir) throws IOException {
+        URL dirURL = getClass().getClassLoader().getResource(sourceDir);
+
+        if (dirURL == null) {
+            throw new IllegalArgumentException("Resource folder '" + sourceDir + "' not found inside JAR.");
+        }
+
+        // Handle standard JAR execution environment
+        if (dirURL.getProtocol().equals("jar")) {
+            JarURLConnection jarConn = (JarURLConnection) dirURL.openConnection();
+            try (JarFile jar = jarConn.getJarFile()) {
+                Enumeration<JarEntry> entries = jar.entries();
+
+                while (entries.hasMoreElements()) {
+                    JarEntry entry = entries.nextElement();
+                    String name = entry.getName();
+
+                    // Check if the entry is inside our source directory
+                    if (name.startsWith(sourceDir + "/")) {
+                        // Determine the relative path to paste into the plugin folder
+                        String relativePath = name.substring(sourceDir.length());
+                        File destinationFile = new File(targetDir, relativePath);
+
+                        if (entry.isDirectory()) {
+                            destinationFile.mkdirs();
+                        } else {
+                            // Create parent directories if they don't exist yet
+                            destinationFile.getParentFile().mkdirs();
+                            // Standard Spigot method to save individual files safely
+                            try (InputStream in = getClass().getClassLoader().getResourceAsStream(name)) {
+                                if (in != null) {
+                                    Files.copy(in, destinationFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Fallback for IDE/development environments running unzipped classes
+            File file = new File(dirURL.getFile());
+            if (file.exists()) {
+                copyLocalDirectory(file, targetDir);
+            }
+        }
+    }
+
+    private void copyLocalDirectory(File source, File destination) throws IOException {
+        if (source.isDirectory()) {
+            if (!destination.exists()) destination.mkdirs();
+            String[] files = source.list();
+            if (files != null) {
+                for (String file : files) {
+                    copyLocalDirectory(new File(source, file), new File(destination, file));
+                }
+            }
+        } else {
+            Files.copy(source.toPath(), destination.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
 
 }

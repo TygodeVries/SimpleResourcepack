@@ -4,6 +4,7 @@ import dev.thesheep.simpleresourcepack.SimpleResourcepack;
 import dev.thesheep.simpleresourcepack.file.Compressor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class LoadSubCommand extends SubCommand{
     @Override
@@ -13,17 +14,12 @@ public class LoadSubCommand extends SubCommand{
             return;
         }
 
-        commandSender.sendMessage("§7Loading config...");
-        SimpleResourcepack.getInstance().reloadConfig();
 
-        commandSender.sendMessage("§7Loading packs...");
-        loadFromFiles();
-    }
-    private void loadFromFiles()
-    {
-        SimpleResourcepack instance = SimpleResourcepack.getInstance();
-        Compressor.compressAll();
-        String msg = instance.getConfig().getString("message_update", "");
-        Bukkit.broadcastMessage(msg);
+        if(commandSender instanceof Player) {
+            SimpleResourcepack.getInstance().reloadResourcepackFilesWithDebug((Player) commandSender);
+        }
+        else {
+            SimpleResourcepack.getInstance().reloadResourcepackFiles();
+        }
     }
 }

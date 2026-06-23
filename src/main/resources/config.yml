@@ -1,7 +1,16 @@
+####################
+#     Hosting      #
+####################
+
 # Ip should be the ip of your server and not just 127.0.0.1 or localhost.
 # You have to restart your server after editing the ip or port.
 ip: "e.x.a.m.p.l.e"
 port: 25564
+
+
+####################
+#   Resourcepacks  #
+####################
 
 # If the player is forced to enable the resourcepack
 forced: true
@@ -9,6 +18,15 @@ forced: true
 # The resourcepacks that should be applied when the player joins.
 # Example:  default: ["skyblock-resourcepack", "overall"]
 default: ["default"]
+
+
+####################
+#       Bots       #
+####################
+
+# Every bot to run before resourcepacks are loaded.
+# For example, copying a resourcepack from another plugin like oraxen.
+execute_before_load: []
 
 ####################
 #     Language     #
@@ -27,4 +45,4 @@ message_needname: "You need to provide a name of the resourcepack you want to lo
 message_download_failed: "§cWe were unable to download the resourcepack."
 message_download_complete: "§aYou are now using the resourcepack"
 message_downloading: "§7We are downloading your resourcepacks..."
-message_listupdated: "§aYou have updated your resourcepack preferences. Be sure to run §l/rp update §ato active them."
+message_listupdated: "§aYou have updated your resourcepack preferences. Be sure to run §l/rp update §ato apply them."

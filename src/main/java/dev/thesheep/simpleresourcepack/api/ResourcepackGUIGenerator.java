@@ -94,7 +94,7 @@ public class ResourcepackGUIGenerator {
 
     private void displayState(Player player, Inventory inventory, String resourcepack, int index)
     {
-        List<String> defaults = SimpleResourcepack.getInstance().getConfig().getStringList("default");
+        List<String> defaults = SimpleResourcepack.getInstance().getConfig().getStringList("resourcepacks");
 
         ItemStack state;
         if(defaults.contains(resourcepack))
